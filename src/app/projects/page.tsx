@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { ProjectCard } from '@/components/portfolio/ProjectCard';
 import { ProjectDetail } from '@/components/portfolio/ProjectDetail';
 import { AddProjectDialog } from '@/components/portfolio/AddProjectDialog';
+import { EditProjectDialog } from '@/components/portfolio/EditProjectDialog';
+import { DeleteProjectDialog } from '@/components/portfolio/DeleteProjectDialog';
 import { PortfolioItem } from '@/types/portfolio';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
@@ -12,6 +14,8 @@ import { Loader2, LayoutGrid } from 'lucide-react';
 
 export default function ProjectsPage() {
   const [selectedProject, setSelectedProject] = useState<PortfolioItem | null>(null);
+  const [editingProject, setEditingProject] = useState<PortfolioItem | null>(null);
+  const [deletingProject, setDeletingProject] = useState<PortfolioItem | null>(null);
   const [year, setYear] = useState<number | null>(null);
   const db = useFirestore();
 
@@ -59,7 +63,12 @@ export default function ProjectsPage() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.3, delay: idx * 0.05 }}
               >
-                <ProjectCard item={item} onClick={setSelectedProject} />
+                <ProjectCard 
+                  item={item} 
+                  onClick={setSelectedProject} 
+                  onEdit={setEditingProject}
+                  onDelete={setDeletingProject}
+                />
               </motion.div>
             ))}
           </AnimatePresence>
@@ -79,7 +88,27 @@ export default function ProjectsPage() {
       <ProjectDetail 
         item={selectedProject} 
         isOpen={!!selectedProject} 
-        onClose={() => setSelectedProject(null)} 
+        onClose={() => setSelectedProject(null)}
+        onEdit={(item) => {
+          setSelectedProject(null);
+          setEditingProject(item);
+        }}
+        onDelete={(item) => {
+          setSelectedProject(null);
+          setDeletingProject(item);
+        }}
+      />
+
+      <EditProjectDialog 
+        project={editingProject}
+        isOpen={!!editingProject}
+        onOpenChange={(open) => !open && setEditingProject(null)}
+      />
+
+      <DeleteProjectDialog 
+        project={deletingProject}
+        isOpen={!!deletingProject}
+        onOpenChange={(open) => !open && setDeletingProject(null)}
       />
 
       <footer className="py-12 border-t border-border mt-20 opacity-60">

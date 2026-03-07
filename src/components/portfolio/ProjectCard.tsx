@@ -6,14 +6,17 @@ import { PortfolioItem } from '@/types/portfolio';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
-import { ExternalLink, Github, Globe } from 'lucide-react';
+import { ExternalLink, Github, Globe, Pencil, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface ProjectCardProps {
   item: PortfolioItem;
   onClick: (item: PortfolioItem) => void;
+  onEdit?: (item: PortfolioItem) => void;
+  onDelete?: (item: PortfolioItem) => void;
 }
 
-export function ProjectCard({ item, onClick }: ProjectCardProps) {
+export function ProjectCard({ item, onClick, onEdit, onDelete }: ProjectCardProps) {
   return (
     <motion.div
       layout
@@ -32,30 +35,61 @@ export function ProjectCard({ item, onClick }: ProjectCardProps) {
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-             <div className="flex gap-4">
-               {item.liveUrl && (
-                 <a 
-                   href={item.liveUrl}
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   onClick={(e) => e.stopPropagation()}
-                   className="text-primary hover:text-primary-foreground bg-primary/10 hover:bg-primary p-2 rounded-full transition-all"
-                 >
-                    <Globe className="w-5 h-5" />
-                 </a>
-               )}
-               {item.links?.map(link => (
-                 <a 
-                   key={link.label}
-                   href={link.url}
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   onClick={(e) => e.stopPropagation()}
-                   className="text-primary hover:text-primary-foreground bg-primary/10 hover:bg-primary p-2 rounded-full transition-all"
-                 >
-                    {link.label === 'GitHub' ? <Github className="w-5 h-5" /> : <ExternalLink className="w-5 h-5" />}
-                 </a>
-               ))}
+             <div className="flex gap-4 w-full">
+               <div className="flex gap-3">
+                 {item.liveUrl && (
+                   <a 
+                     href={item.liveUrl}
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     onClick={(e) => e.stopPropagation()}
+                     className="text-primary hover:text-primary-foreground bg-primary/10 hover:bg-primary p-2 rounded-full transition-all"
+                   >
+                      <Globe className="w-5 h-5" />
+                   </a>
+                 )}
+                 {item.links?.map(link => (
+                   <a 
+                     key={link.label}
+                     href={link.url}
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     onClick={(e) => e.stopPropagation()}
+                     className="text-primary hover:text-primary-foreground bg-primary/10 hover:bg-primary p-2 rounded-full transition-all"
+                   >
+                      {link.label === 'GitHub' ? <Github className="w-5 h-5" /> : <ExternalLink className="w-5 h-5" />}
+                   </a>
+                 ))}
+               </div>
+               
+               <div className="ml-auto flex gap-2">
+                  {onEdit && (
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="rounded-full w-8 h-8 opacity-80 hover:opacity-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(item);
+                      }}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                  )}
+                  {onDelete && (
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="rounded-full w-8 h-8 opacity-80 hover:opacity-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(item);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+               </div>
              </div>
           </div>
         </div>

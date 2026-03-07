@@ -10,18 +10,21 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Sparkles, Loader2, AlertCircle, CheckCircle2, Target, Globe, Lock } from 'lucide-react';
+import { ExternalLink, Sparkles, Loader2, AlertCircle, CheckCircle2, Target, Globe, Lock, Pencil, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { generateProjectSummary } from '@/ai/flows/ai-generated-project-summary-flow';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 
 interface ProjectDetailProps {
   item: PortfolioItem | null;
   isOpen: boolean;
   onClose: () => void;
+  onEdit?: (item: PortfolioItem) => void;
+  onDelete?: (item: PortfolioItem) => void;
 }
 
-export function ProjectDetail({ item, isOpen, onClose }: ProjectDetailProps) {
+export function ProjectDetail({ item, isOpen, onClose, onEdit, onDelete }: ProjectDetailProps) {
   const [summary, setSummary] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,12 +71,28 @@ export function ProjectDetail({ item, isOpen, onClose }: ProjectDetailProps) {
           </div>
 
           <div className="p-6 md:p-8 space-y-8">
-            <div className="flex flex-wrap gap-2">
-              {item.tags.map(tag => (
-                <Badge key={tag} variant="secondary" className="bg-secondary/40 text-muted-foreground px-3 py-1">
-                  {tag}
-                </Badge>
-              ))}
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex flex-wrap gap-2">
+                {item.tags.map(tag => (
+                  <Badge key={tag} variant="secondary" className="bg-secondary/40 text-muted-foreground px-3 py-1">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                {onEdit && (
+                  <Button variant="outline" size="sm" className="gap-2 text-xs uppercase tracking-widest font-bold h-8" onClick={() => onEdit(item)}>
+                    <Pencil className="w-3 h-3" />
+                    Edit
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button variant="destructive" size="sm" className="gap-2 text-xs uppercase tracking-widest font-bold h-8" onClick={() => onDelete(item)}>
+                    <Trash2 className="w-3 h-3" />
+                    Delete
+                  </Button>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -138,7 +157,6 @@ export function ProjectDetail({ item, isOpen, onClose }: ProjectDetailProps) {
                   <div className="space-y-4">
                     <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Access & Resources</h4>
                     <div className="flex flex-col gap-3">
-                      {/* Live Access Button */}
                       <Button 
                         variant={item.liveUrl ? "default" : "secondary"} 
                         className={`w-full justify-between group h-12 ${!item.liveUrl && 'opacity-50 cursor-not-allowed'}`}
@@ -179,7 +197,9 @@ export function ProjectDetail({ item, isOpen, onClose }: ProjectDetailProps) {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-border">
+                  <Separator className="opacity-50" />
+
+                  <div className="pt-2">
                     <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">AI Enhanced</h4>
                     {!summary && (
                       <Button 
