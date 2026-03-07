@@ -87,11 +87,8 @@ export function AddProjectDialog() {
       createdAt: serverTimestamp(),
     };
 
+    // Initiate the write and handle errors via catch block
     addDoc(collection(db, 'projects'), projectData)
-      .then(() => {
-        setIsOpen(false);
-        form.reset();
-      })
       .catch(async (error) => {
         const permissionError = new FirestorePermissionError({
           path: 'projects',
@@ -100,6 +97,10 @@ export function AddProjectDialog() {
         });
         errorEmitter.emit('permission-error', permissionError);
       });
+
+    // Close the dialog and reset the form immediately (Optimistic UI)
+    setIsOpen(false);
+    form.reset();
   }
 
   return (
