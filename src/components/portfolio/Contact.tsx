@@ -27,13 +27,13 @@ export function Contact() {
               <a href="#"><FileDown className="w-4 h-4" /> Download CV</a>
             </Button>
             <Button variant="outline" size="icon" className="rounded-full" asChild>
-              <a href="#"><Github className="w-4 h-4" /></a>
+              <a href="https://github.com/montas1r" target="_blank" rel="noopener noreferrer"><Github className="w-4 h-4" /></a>
             </Button>
             <Button variant="outline" size="icon" className="rounded-full" asChild>
-              <a href="#"><Linkedin className="w-4 h-4" /></a>
+              <a href="https://www.linkedin.com/in/montasir-karim-bd7/" target="_blank" rel="noopener noreferrer"><Linkedin className="w-4 h-4" /></a>
             </Button>
             <Button variant="outline" size="icon" className="rounded-full" asChild>
-              <a href="#"><Twitter className="w-4 h-4" /></a>
+              <a href="https://twitter.com/_m0n7asir_" target="_blank" rel="noopener noreferrer"><Twitter className="w-4 h-4" /></a>
             </Button>
           </div>
         </div>

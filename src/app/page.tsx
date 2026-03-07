@@ -25,9 +25,9 @@ export default function HomePage() {
             </p>
           </div>
           <div className="flex gap-8 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">GitHub</a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">LinkedIn</a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Twitter</a>
+            <a href="https://github.com/montas1r" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">GitHub</a>
+            <a href="https://www.linkedin.com/in/montasir-karim-bd7/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">LinkedIn</a>
+            <a href="https://twitter.com/_m0n7asir_" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Twitter</a>
           </div>
         </div>
       </footer>

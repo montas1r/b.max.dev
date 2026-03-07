@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -22,7 +21,7 @@ export function Hero() {
           Full-Stack Developer
         </span>
         <h1 className="font-headline text-5xl md:text-8xl font-bold tracking-tighter mb-6">
-          Hi, I'm <span className="text-primary">B. Max</span>.
+          Hi, I'm <span className="text-primary">Montasir Karim</span>.
         </h1>
         <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl leading-relaxed mb-10">
           I build scalable web applications with a focus on user experience and technical precision.
@@ -30,7 +29,7 @@ export function Hero() {
         
         <div className="flex flex-col sm:flex-row gap-4">
           <Button size="lg" className="group gap-2 px-8" asChild>
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://github.com/montas1r" target="_blank" rel="noopener noreferrer">
               View My Work
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </a>
