@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "Project": {
@@ -17,6 +16,21 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["title", "description", "category"]
+    },
+    "Analysis": {
+      "title": "Analysis",
+      "description": "A saved text analysis report.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The user-defined title for the analysis." },
+        "originalText": { "type": "string", "description": "The original text that was analyzed." },
+        "sentiment": { "type": "string", "description": "AI-detected sentiment." },
+        "tone": { "type": "string", "description": "AI-detected tone." },
+        "keyPoints": { "type": "array", "items": { "type": "string" } },
+        "suggestions": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "originalText", "sentiment"]
     }
   },
   "auth": {
@@ -26,6 +40,10 @@
     "/projects/{projectId}": {
       "schema": "Project",
       "description": "Collection of portfolio projects."
+    },
+    "/analyses/{analysisId}": {
+      "schema": "Analysis",
+      "description": "Collection of saved text analyses."
     }
   }
 }
