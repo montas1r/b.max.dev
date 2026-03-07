@@ -58,13 +58,11 @@ export function TextAnalysisTool() {
     try {
       const res = await analyzeText({ text: inputText });
       setResult(res);
-      // Auto-generate a title if empty
       if (!analysisTitle) {
         setAnalysisTitle(`Analysis ${new Date().toLocaleDateString()}`);
       }
     } catch (err) {
       setError("Failed to analyze text. Please try again later.");
-      console.error(err);
     } finally {
       setIsAnalyzing(false);
     }
@@ -81,13 +79,9 @@ export function TextAnalysisTool() {
       createdAt: serverTimestamp(),
     };
 
+    // Optimistic Save: Initiate write but don't await resolution for UI state
     addDoc(collection(db, 'analyses'), analysisData)
-      .then(() => {
-        setIsSaving(false);
-        setActiveTab('history');
-      })
       .catch(async (error) => {
-        setIsSaving(false);
         const permissionError = new FirestorePermissionError({
           path: 'analyses',
           operation: 'create',
@@ -95,6 +89,16 @@ export function TextAnalysisTool() {
         });
         errorEmitter.emit('permission-error', permissionError);
       });
+
+    // Reset UI immediately (Optimistic)
+    setTimeout(() => {
+      setIsSaving(false);
+      setActiveTab('history');
+      // Clear current analysis state for the next session
+      setInputText('');
+      setAnalysisTitle('');
+      setResult(null);
+    }, 300);
   };
 
   const handleDeleteAnalysis = (id: string, e: React.MouseEvent) => {
@@ -126,7 +130,7 @@ export function TextAnalysisTool() {
   return (
     <div className="max-w-4xl mx-auto space-y-12">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-8 h-12 bg-muted/20">
+        <TabsList className="grid w-full grid-cols-2 mb-8 h-12 bg-muted/20 p-1">
           <TabsTrigger value="analyze" className="gap-2 text-xs uppercase tracking-widest font-bold">
             <Sparkles className="w-4 h-4" />
             New Analysis
@@ -137,7 +141,7 @@ export function TextAnalysisTool() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="analyze" className="space-y-12">
+        <TabsContent value="analyze" className="space-y-12 outline-none">
           <Card className="border-border bg-card/50 backdrop-blur-sm shadow-xl overflow-hidden">
             <CardHeader className="border-b border-border/50 bg-muted/5">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -164,7 +168,7 @@ export function TextAnalysisTool() {
               <div className="relative group">
                 <Textarea 
                   placeholder="Paste your text content here for deep linguistic inspection..."
-                  className="min-h-[300px] bg-background/50 border-border focus:border-primary/50 transition-all text-base resize-none p-6 font-body leading-relaxed"
+                  className="min-h-[300px] bg-background/50 border-border focus:border-primary/50 transition-all text-base resize-none p-6 font-body leading-relaxed outline-none"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                 />
@@ -228,18 +232,18 @@ export function TextAnalysisTool() {
               >
                 <div className="flex items-center gap-4">
                   <Separator className="flex-1 bg-border/50" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.5em] text-primary whitespace-nowrap">Report Generation</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.5em] text-primary whitespace-nowrap">Analysis Output</span>
                   <Separator className="flex-1 bg-border/50" />
                 </div>
 
-                {/* Sentiment & Tone Section */}
+                {/* Sentiment & Tone Section - Full Width */}
                 <div className="space-y-6">
                   <div className="flex items-center gap-3 text-primary">
                     <Quote className="w-5 h-5" />
                     <h3 className="text-sm font-bold uppercase tracking-widest">Sentiment & Tone</h3>
                   </div>
-                  <div className="bg-card/30 border border-border p-8 rounded-2xl flex flex-col md:flex-row gap-8 items-start md:items-center justify-between">
-                    <div className="space-y-2">
+                  <div className="bg-card/30 border border-border p-8 rounded-2xl flex flex-col md:flex-row gap-8 items-start md:items-center justify-between w-full">
+                    <div className="space-y-2 shrink-0">
                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Sentiment Score</p>
                       <Badge className="text-base px-4 py-1.5 bg-primary/10 text-primary border-primary/20 rounded-lg">
                         {result.sentiment}
@@ -257,13 +261,13 @@ export function TextAnalysisTool() {
 
                 <Separator className="bg-border/50" />
 
-                {/* Key Points Section */}
+                {/* Key Points Section - Full Width */}
                 <div className="space-y-6">
                   <div className="flex items-center gap-3 text-primary">
                     <BrainCircuit className="w-5 h-5" />
                     <h3 className="text-sm font-bold uppercase tracking-widest">Primary Intel</h3>
                   </div>
-                  <div className="bg-card/20 border border-border p-8 rounded-2xl">
+                  <div className="bg-card/20 border border-border p-8 rounded-2xl w-full">
                     <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
                       {result.keyPoints.map((point, i) => (
                         <li key={i} className="flex items-start gap-4 text-base text-foreground/80 group">
@@ -277,13 +281,13 @@ export function TextAnalysisTool() {
 
                 <Separator className="bg-border/50" />
 
-                {/* Recommendations Section */}
+                {/* Recommendations Section - Full Width */}
                 <div className="space-y-6">
                   <div className="flex items-center gap-3 text-primary">
                     <Lightbulb className="w-5 h-5" />
                     <h3 className="text-sm font-bold uppercase tracking-widest">Strategic Path</h3>
                   </div>
-                  <div className="bg-primary/5 border border-primary/10 p-8 rounded-2xl">
+                  <div className="bg-primary/5 border border-primary/10 p-8 rounded-2xl w-full">
                     <div className="grid grid-cols-1 gap-4">
                       {result.suggestions.map((suggestion, i) => (
                         <div key={i} className="flex items-center gap-4 p-5 rounded-xl hover:bg-primary/5 transition-colors border border-transparent hover:border-primary/20 group cursor-default">
@@ -301,7 +305,7 @@ export function TextAnalysisTool() {
           </AnimatePresence>
         </TabsContent>
 
-        <TabsContent value="history" className="space-y-6">
+        <TabsContent value="history" className="space-y-6 outline-none">
           {loadingAnalyses ? (
              <div className="flex flex-col items-center justify-center py-20 gap-4">
               <Loader2 className="w-8 h-8 text-primary animate-spin" />
