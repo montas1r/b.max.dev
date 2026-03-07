@@ -10,17 +10,17 @@ import {
   SidebarMenuButton,
   SidebarGroup,
   SidebarGroupLabel,
-  SidebarGroupContent
+  SidebarGroupContent,
+  SidebarFooter
 } from '@/components/ui/sidebar';
-import { PortfolioCategory } from '@/types/portfolio';
-import { Home, LayoutGrid, Award, Briefcase, Heart, Github, Linkedin, Twitter } from 'lucide-react';
+import { Home, LayoutGrid, Info, Layers, Mail, Github, Linkedin } from 'lucide-react';
 
-const categories: { name: PortfolioCategory; icon: React.ReactNode; id: string }[] = [
-  { name: 'Continuous Works', icon: <Home className="w-4 h-4" />, id: 'continuous-works' },
-  { name: 'Build Projects', icon: <LayoutGrid className="w-4 h-4" />, id: 'build-projects' },
-  { name: 'Skills Learning', icon: <Award className="w-4 h-4" />, id: 'skills-learning' },
-  { name: 'Works', icon: <Briefcase className="w-4 h-4" />, id: 'works' },
-  { name: 'Hobbies', icon: <Heart className="w-4 h-4" />, id: 'hobbies' },
+const sections = [
+  { name: 'Home', icon: <Home className="w-4 h-4" />, id: 'home' },
+  { name: 'Projects', icon: <LayoutGrid className="w-4 h-4" />, id: 'projects' },
+  { name: 'Tech Stack', icon: <Layers className="w-4 h-4" />, id: 'stack' },
+  { name: 'About', icon: <Info className="w-4 h-4" />, id: 'about' },
+  { name: 'Contact', icon: <Mail className="w-4 h-4" />, id: 'contact' },
 ];
 
 export function AppSidebar() {
@@ -41,7 +41,7 @@ export function AppSidebar() {
             <span className="text-foreground">.dev</span>
           </h2>
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
-            Portfolio v2.0
+            Full-Stack Portfolio
           </p>
         </div>
       </SidebarHeader>
@@ -53,7 +53,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {categories.map((item) => (
+              {sections.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton 
                     onClick={() => scrollToSection(item.id)}
@@ -67,32 +67,18 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        <SidebarGroup className="mt-auto mb-6">
-          <SidebarGroupLabel className="px-4 text-xs font-bold uppercase tracking-widest text-muted-foreground/50">
-            Connect
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="flex flex-row gap-2 px-4 mt-2">
-              <SidebarMenuItem>
-                <SidebarMenuButton size="icon" className="rounded-full bg-secondary/50 hover:bg-primary/20 hover:text-primary">
-                  <Github className="w-4 h-4" />
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton size="icon" className="rounded-full bg-secondary/50 hover:bg-primary/20 hover:text-primary">
-                  <Linkedin className="w-4 h-4" />
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton size="icon" className="rounded-full bg-secondary/50 hover:bg-primary/20 hover:text-primary">
-                  <Twitter className="w-4 h-4" />
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter className="p-4">
+        <div className="flex justify-center gap-2">
+           <SidebarMenuButton size="icon" className="rounded-full bg-secondary/50 hover:bg-primary/20 hover:text-primary">
+            <Github className="w-4 h-4" />
+          </SidebarMenuButton>
+          <SidebarMenuButton size="icon" className="rounded-full bg-secondary/50 hover:bg-primary/20 hover:text-primary">
+            <Linkedin className="w-4 h-4" />
+          </SidebarMenuButton>
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 }

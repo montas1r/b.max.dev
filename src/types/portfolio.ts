@@ -5,8 +5,15 @@ export interface PortfolioItem {
   title: string;
   description: string;
   fullDescription: string;
+  problem?: string;
+  solution?: string;
   category: PortfolioCategory;
   imageUrl: string;
   tags: string[];
   links?: { label: string; url: string }[];
+}
+
+export interface TechGroup {
+  category: string;
+  skills: string[];
 }
