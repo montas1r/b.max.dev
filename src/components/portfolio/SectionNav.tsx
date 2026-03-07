@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { PortfolioCategory } from '@/types/portfolio';
 
-const categories: PortfolioCategory[] = ['Continuous Works', 'Build Projects', 'Skills Learning', 'Works', 'Hobbies'];
+const categories: PortfolioCategory[] = ['Continuous Works', 'Build Projects', 'Skills Learning', 'Hobbies'];
 
 export function SectionNav() {
   const [activeSection, setActiveSection] = useState<string>('');

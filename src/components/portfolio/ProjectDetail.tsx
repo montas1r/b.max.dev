@@ -7,11 +7,10 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Sparkles, Loader2 } from 'lucide-react';
+import { ExternalLink, Sparkles, Loader2, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import { generateProjectSummary } from '@/ai/flows/ai-generated-project-summary-flow';
 
@@ -24,19 +23,21 @@ interface ProjectDetailProps {
 export function ProjectDetail({ item, isOpen, onClose }: ProjectDetailProps) {
   const [summary, setSummary] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!item) return null;
 
   const handleGenerateSummary = async () => {
     setIsGenerating(true);
+    setError(null);
     try {
       const res = await generateProjectSummary({
         title: item.title,
         description: item.fullDescription,
       });
       setSummary(res.summary);
-    } catch (error) {
-      console.error("Summary generation failed", error);
+    } catch (err) {
+      setError("Failed to generate AI summary. Please try again.");
     } finally {
       setIsGenerating(false);
     }
@@ -56,7 +57,7 @@ export function ProjectDetail({ item, isOpen, onClose }: ProjectDetailProps) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="relative aspect-video w-full rounded-lg overflow-hidden my-4 border border-border">
+        <div className="relative aspect-video w-full rounded-lg overflow-hidden my-4 border border-border bg-muted/20">
           <Image
             src={item.imageUrl}
             alt={item.title}
@@ -77,7 +78,7 @@ export function ProjectDetail({ item, isOpen, onClose }: ProjectDetailProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-4">
               <h4 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">About the Project</h4>
-              <p className="text-foreground leading-relaxed">
+              <p className="text-foreground leading-relaxed whitespace-pre-wrap">
                 {item.fullDescription}
               </p>
 
@@ -92,20 +93,31 @@ export function ProjectDetail({ item, isOpen, onClose }: ProjectDetailProps) {
                   </p>
                 </div>
               )}
+
+              {error && (
+                <div className="flex items-center gap-2 text-destructive text-xs p-3 bg-destructive/5 rounded-md border border-destructive/20">
+                  <AlertCircle className="w-4 h-4" />
+                  {error}
+                </div>
+              )}
             </div>
 
             <div className="space-y-6">
               <div className="space-y-3">
                 <h4 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Actions</h4>
                 <div className="flex flex-col gap-2">
-                  {item.links?.map(link => (
-                    <Button key={link.label} variant="outline" className="w-full justify-between" asChild>
-                      <a href={link.url} target="_blank" rel="noopener noreferrer">
-                        {link.label}
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    </Button>
-                  ))}
+                  {item.links && item.links.length > 0 ? (
+                    item.links.map(link => (
+                      <Button key={link.label} variant="outline" className="w-full justify-between" asChild>
+                        <a href={link.url} target="_blank" rel="noopener noreferrer">
+                          {link.label}
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      </Button>
+                    ))
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">No external links available.</p>
+                  )}
                   
                   {!summary && (
                     <Button 

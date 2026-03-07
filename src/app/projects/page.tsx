@@ -1,7 +1,6 @@
-
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ProjectCard } from '@/components/portfolio/ProjectCard';
 import { ProjectDetail } from '@/components/portfolio/ProjectDetail';
 import { AddProjectDialog } from '@/components/portfolio/AddProjectDialog';
@@ -13,7 +12,12 @@ import { Loader2, LayoutGrid } from 'lucide-react';
 
 export default function ProjectsPage() {
   const [selectedProject, setSelectedProject] = useState<PortfolioItem | null>(null);
+  const [year, setYear] = useState<number | null>(null);
   const db = useFirestore();
+
+  useEffect(() => {
+    setYear(new Date().getFullYear());
+  }, []);
 
   const projectsQuery = useMemo(() => {
     if (!db) return null;
@@ -82,12 +86,12 @@ export default function ProjectsPage() {
           <div className="flex flex-col items-center md:items-start gap-2">
             <h2 className="font-headline text-lg font-bold">b.max.dev</h2>
             <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
-              &copy; {new Date().getFullYear()} Crafted with technical precision.
+              &copy; {year} Crafted with technical precision.
             </p>
           </div>
           <div className="flex gap-8 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            <a href="#" className="hover:text-primary transition-colors">GitHub</a>
-            <a href="#" className="hover:text-primary transition-colors">LinkedIn</a>
+            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">GitHub</a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">LinkedIn</a>
           </div>
         </div>
       </footer>
