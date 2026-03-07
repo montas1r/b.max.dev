@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -6,12 +7,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Mail } from 'lucide-react';
 
 export function Hero() {
-  const scrollToWork = () => {
-    document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const scrollToContact = () => {
-    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+  const handleEmailClick = () => {
+    window.location.href = "mailto:hello@bmax.dev";
   };
 
   return (
@@ -32,11 +29,13 @@ export function Hero() {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4">
-          <Button size="lg" onClick={scrollToWork} className="group gap-2 px-8">
-            View My Work
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          <Button size="lg" className="group gap-2 px-8" asChild>
+            <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+              View My Work
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </a>
           </Button>
-          <Button size="lg" variant="outline" onClick={scrollToContact} className="gap-2 px-8">
+          <Button size="lg" variant="outline" onClick={handleEmailClick} className="gap-2 px-8">
             <Mail className="w-4 h-4" />
             Get In Touch
           </Button>

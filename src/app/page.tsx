@@ -1,25 +1,17 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import { Hero } from '@/components/portfolio/Hero';
-import { TechStack } from '@/components/portfolio/TechStack';
-import { About } from '@/components/portfolio/About';
-import { Contact } from '@/components/portfolio/Contact';
-import { ProjectDetail } from '@/components/portfolio/ProjectDetail';
-import { PortfolioItem } from '@/types/portfolio';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Menu, X } from 'lucide-react';
 
 const navItems = [
   { name: 'Home', id: 'home' },
-  { name: 'Tech Stack', id: 'stack' },
-  { name: 'About', id: 'about' },
-  { name: 'Contact', id: 'contact' },
 ];
 
 export default function PortfolioPage() {
-  const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
   const [year, setYear] = useState<number | null>(null);
   const [activeSection, setActiveSection] = useState('home');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -147,21 +139,6 @@ export default function PortfolioPage() {
           <Hero />
         </section>
 
-        {/* Tech Stack */}
-        <section id="stack" className="scroll-mt-24">
-          <TechStack />
-        </section>
-
-        {/* About Snippet */}
-        <section id="about" className="scroll-mt-24">
-          <About />
-        </section>
-
-        {/* Contact & Footer */}
-        <section id="contact" className="scroll-mt-24">
-          <Contact />
-        </section>
-
         <footer className="py-12 border-t border-border mt-20 opacity-60">
           <div className="flex flex-col md:row items-center justify-between gap-8">
             <div className="flex flex-col items-center md:items-start gap-2">
@@ -178,12 +155,6 @@ export default function PortfolioPage() {
           </div>
         </footer>
       </main>
-
-      <ProjectDetail 
-        item={selectedItem} 
-        isOpen={!!selectedItem} 
-        onClose={() => setSelectedItem(null)} 
-      />
     </div>
   );
 }
