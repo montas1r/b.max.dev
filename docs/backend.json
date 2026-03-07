@@ -1,0 +1,31 @@
+
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "A portfolio project entry.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The name of the project." },
+        "description": { "type": "string", "description": "A short tagline or summary." },
+        "fullDescription": { "type": "string", "description": "Detailed case study description." },
+        "problem": { "type": "string", "description": "The challenge being solved." },
+        "solution": { "type": "string", "description": "The technical solution implemented." },
+        "category": { "type": "string", "enum": ["Continuous Works", "Build Projects", "Skills Learning", "Hobbies"] },
+        "imageUrl": { "type": "string", "description": "URL to the project screenshot." },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "description", "category", "imageUrl"]
+    }
+  },
+  "auth": {
+    "providers": ["google.com"]
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Collection of portfolio projects."
+    }
+  }
+}
