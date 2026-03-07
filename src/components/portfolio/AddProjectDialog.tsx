@@ -20,6 +20,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,18 +31,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PlusCircle, Loader2 } from 'lucide-react';
+import { PlusCircle, Loader2, Image as ImageIcon } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const formSchema = z.object({
   title: z.string().min(2, "Title is required"),
   description: z.string().min(5, "Short description is required"),
   fullDescription: z.string().min(10, "Detailed description is required"),
   category: z.enum(['Continuous Works', 'Build Projects', 'Skills Learning', 'Hobbies']),
-  imageUrl: z.string().url("Must be a valid URL"),
+  imageUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
   tags: z.string().describe("Comma separated tags"),
 });
 
@@ -55,7 +57,7 @@ export function AddProjectDialog() {
       description: "",
       fullDescription: "",
       category: "Build Projects",
-      imageUrl: "https://picsum.photos/seed/new/800/600",
+      imageUrl: "",
       tags: "React, Next.js, Tailwind",
     },
   });
@@ -63,9 +65,25 @@ export function AddProjectDialog() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!db) return;
 
+    // Determine the image to use
+    let finalImageUrl = values.imageUrl;
+    if (!finalImageUrl) {
+      // Find a category-specific placeholder or use a default
+      const categoryMap: Record<string, string> = {
+        'Continuous Works': 'proj-continuous',
+        'Build Projects': 'proj-build',
+        'Skills Learning': 'proj-skills',
+        'Hobbies': 'proj-hobbies'
+      };
+      const placeholderId = categoryMap[values.category] || 'hero-bg';
+      const placeholder = PlaceHolderImages.find(p => p.id === placeholderId);
+      finalImageUrl = placeholder?.imageUrl || `https://picsum.photos/seed/${values.title}/800/600`;
+    }
+
     const projectData = {
       ...values,
-      tags: values.tags.split(',').map(t => t.trim()),
+      imageUrl: finalImageUrl,
+      tags: values.tags.split(',').map(t => t.trim()).filter(Boolean),
       createdAt: serverTimestamp(),
     };
 
@@ -140,10 +158,16 @@ export function AddProjectDialog() {
                 name="imageUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Image URL</FormLabel>
+                    <FormLabel>Image URL (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://..." {...field} />
+                      <div className="relative">
+                        <Input placeholder="https://..." {...field} />
+                        <ImageIcon className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground opacity-50" />
+                      </div>
                     </FormControl>
+                    <FormDescription className="text-[10px]">
+                      Leave empty to use a category placeholder.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -1,3 +1,4 @@
+
 export type PortfolioCategory = 'Continuous Works' | 'Build Projects' | 'Skills Learning' | 'Hobbies';
 
 export interface PortfolioItem {
@@ -11,6 +12,7 @@ export interface PortfolioItem {
   imageUrl: string;
   tags: string[];
   links?: { label: string; url: string }[];
+  createdAt?: any;
 }
 
 export interface TechGroup {
