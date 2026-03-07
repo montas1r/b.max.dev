@@ -10,6 +10,7 @@ import { Menu, X } from 'lucide-react';
 const navItems = [
   { name: 'Home', href: '/' },
   { name: 'Projects', href: '/projects' },
+  { name: 'Analysis', href: '/analysis' },
 ];
 
 export function Navbar() {
