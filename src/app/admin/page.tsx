@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -18,12 +18,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useAuth, useUser } from '@/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { Loader2, LogIn, LogOut, ShieldCheck, AlertCircle, UserPlus } from 'lucide-react';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { Loader2, LogIn, LogOut, ShieldCheck, AlertCircle, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const authSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  username: z.string().min(1, "Username is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -32,12 +32,11 @@ export default function AdminPage() {
   const auth = useAuth();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [isRegistering, setIsRegistering] = useState(false);
 
   const form = useForm<z.infer<typeof authSchema>>({
     resolver: zodResolver(authSchema),
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
     },
   });
@@ -47,17 +46,16 @@ export default function AdminPage() {
   async function onAuth(values: z.infer<typeof authSchema>) {
     setError(null);
     try {
-      if (isRegistering) {
-        await createUserWithEmailAndPassword(auth, values.email, values.password);
-      } else {
-        await signInWithEmailAndPassword(auth, values.email, values.password);
-      }
+      // Map username to a dummy email for Firebase Auth compatibility
+      const email = values.username.includes('@') 
+        ? values.username 
+        : `${values.username}@admin.local`;
+      
+      await signInWithEmailAndPassword(auth, email, values.password);
       router.push('/projects');
     } catch (err: any) {
-      const message = err.code === 'auth/user-not-found' 
-        ? "User not found. Try switching to 'Register' mode for first-time setup." 
-        : err.message || "Authentication failed.";
-      setError(message);
+      console.error(err);
+      setError("Authentication failed. Please verify your credentials.");
     }
   }
 
@@ -86,14 +84,14 @@ export default function AdminPage() {
               <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <ShieldCheck className="w-6 h-6 text-primary" />
               </div>
-              <CardTitle className="text-2xl font-headline text-foreground">Admin Authenticated</CardTitle>
+              <CardTitle className="text-2xl font-headline text-foreground">Access Granted</CardTitle>
               <CardDescription>
-                Logged in as <span className="text-foreground font-medium">{user.email}</span>
+                Logged in as <span className="text-foreground font-medium">{user.email?.split('@')[0]}</span>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground text-center">
-                You now have full access to manage your portfolio cloud data.
+                The control center is active. You can now manage projects and linguistic audits.
               </p>
               <div className="grid grid-cols-2 gap-3 pt-4">
                 <Button variant="outline" onClick={() => router.push('/projects')}>
@@ -109,13 +107,12 @@ export default function AdminPage() {
         ) : (
           <Card className="border-border bg-card/50 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-2xl font-headline">
-                {isRegistering ? 'Owner Registration' : 'Owner Login'}
-              </CardTitle>
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
+                <Lock className="w-5 h-5 text-primary" />
+              </div>
+              <CardTitle className="text-2xl font-headline">Admin Access</CardTitle>
               <CardDescription>
-                {isRegistering 
-                  ? 'Create your administrative credentials for first-time setup.' 
-                  : 'Authenticate to access the administrative control center.'}
+                Authenticate with your primary credentials to unlock management tools.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -123,12 +120,12 @@ export default function AdminPage() {
                 <form onSubmit={form.handleSubmit(onAuth)} className="space-y-4">
                   <FormField
                     control={form.control}
-                    name="email"
+                    name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>Username</FormLabel>
                         <FormControl>
-                          <Input placeholder="admin@bmax.dev" {...field} />
+                          <Input placeholder="bingo.max" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -159,30 +156,19 @@ export default function AdminPage() {
                     </motion.div>
                   )}
 
-                  <Button type="submit" className="w-full gap-2" disabled={form.formState.isSubmitting}>
+                  <Button type="submit" className="w-full gap-2 h-12" disabled={form.formState.isSubmitting}>
                     {form.formState.isSubmitting ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : isRegistering ? (
-                      <UserPlus className="w-4 h-4" />
                     ) : (
                       <LogIn className="w-4 h-4" />
                     )}
-                    {isRegistering ? 'Create Admin Account' : 'Enter Control Center'}
+                    Sign In
                   </Button>
                 </form>
               </Form>
-
-              <div className="text-center">
-                <button 
-                  onClick={() => {
-                    setIsRegistering(!isRegistering);
-                    setError(null);
-                  }}
-                  className="text-xs font-bold uppercase tracking-widest text-primary hover:underline underline-offset-4"
-                >
-                  {isRegistering ? 'Back to Login' : 'First-time setup? Register here'}
-                </button>
-              </div>
+              <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest opacity-50">
+                Unauthorized access is strictly logged.
+              </p>
             </CardContent>
           </Card>
         )}
