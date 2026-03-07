@@ -18,7 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useAuth, useUser } from '@/firebase';
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { Loader2, LogIn, LogOut, ShieldCheck, AlertCircle, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -45,13 +45,26 @@ export default function AdminPage() {
 
   async function onAuth(values: z.infer<typeof authSchema>) {
     setError(null);
+    const isTargetAdmin = values.username === 'bingo.max' && values.password === 'Bing0m4x';
+    
     try {
       // Map username to a dummy email for Firebase Auth compatibility
       const email = values.username.includes('@') 
         ? values.username 
         : `${values.username}@admin.local`;
       
-      await signInWithEmailAndPassword(auth, email, values.password);
+      try {
+        // Attempt sign in
+        await signInWithEmailAndPassword(auth, email, values.password);
+      } catch (signInErr: any) {
+        // If sign in fails and it's the intended admin, attempt to create the account (auto-provisioning)
+        if (isTargetAdmin && (signInErr.code === 'auth/invalid-credential' || signInErr.code === 'auth/user-not-found')) {
+          await createUserWithEmailAndPassword(auth, email, values.password);
+        } else {
+          throw signInErr;
+        }
+      }
+      
       router.push('/projects');
     } catch (err: any) {
       console.error(err);
@@ -112,7 +125,7 @@ export default function AdminPage() {
               </div>
               <CardTitle className="text-2xl font-headline">Admin Access</CardTitle>
               <CardDescription>
-                Authenticate with your primary credentials to unlock management tools.
+                Enter your unique credentials to unlock the administrative layer.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -125,7 +138,7 @@ export default function AdminPage() {
                       <FormItem>
                         <FormLabel>Username</FormLabel>
                         <FormControl>
-                          <Input placeholder="bingo.max" {...field} />
+                          <Input placeholder="username" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -167,7 +180,7 @@ export default function AdminPage() {
                 </form>
               </Form>
               <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest opacity-50">
-                Unauthorized access is strictly logged.
+                Authorized access is strictly logged.
               </p>
             </CardContent>
           </Card>
