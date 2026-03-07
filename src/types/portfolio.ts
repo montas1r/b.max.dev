@@ -1,4 +1,4 @@
-export type PortfolioCategory = 'Continuous Works' | 'Build Projects' | 'Skills Learning' | 'Works' | 'Hobbies';
+export type PortfolioCategory = 'Continuous Works' | 'Build Projects' | 'Skills Learning' | 'Hobbies';
 
 export interface PortfolioItem {
   id: string;
