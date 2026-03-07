@@ -1,7 +1,6 @@
-
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AliasDisplay } from '@/components/portfolio/AliasDisplay';
 import { SectionNav } from '@/components/portfolio/SectionNav';
 import { ProjectCard } from '@/components/portfolio/ProjectCard';
@@ -20,6 +19,11 @@ const categories: PortfolioCategory[] = [
 
 export default function PortfolioPage() {
   const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
+  const [year, setYear] = useState<number | null>(null);
+
+  useEffect(() => {
+    setYear(new Date().getFullYear());
+  }, []);
 
   const handleOpenDetail = (item: PortfolioItem) => {
     setSelectedItem(item);
@@ -100,7 +104,7 @@ export default function PortfolioPage() {
             <a href="#" className="hover:text-primary transition-colors">Twitter</a>
           </div>
           <p className="text-xs text-muted-foreground mt-4">
-            &copy; {new Date().getFullYear()} b.max.dev. Crafted with precision.
+            &copy; {year} b.max.dev. Crafted with precision.
           </p>
         </div>
       </footer>
