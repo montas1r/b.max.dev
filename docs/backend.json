@@ -1,49 +1,328 @@
 {
   "entities": {
-    "Project": {
-      "title": "Project",
-      "description": "A portfolio project entry.",
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
       "type": "object",
+      "description": "Represents the owner of the portfolio website, including their alias, bio, and contact information.",
       "properties": {
-        "title": { "type": "string", "description": "The name of the project." },
-        "description": { "type": "string", "description": "A short tagline or summary." },
-        "fullDescription": { "type": "string", "description": "Detailed case study description." },
-        "problem": { "type": "string", "description": "The challenge being solved." },
-        "solution": { "type": "string", "description": "The technical solution implemented." },
-        "category": { "type": "string", "enum": ["Continuous Works", "Build Projects", "Skills Learning", "Hobbies"] },
-        "imageUrl": { "type": "string", "description": "URL to the project screenshot." },
-        "tags": { "type": "array", "items": { "type": "string" } },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity."
+        },
+        "alias": {
+          "type": "string",
+          "description": "The prominent alias or name displayed on the portfolio (e.g., 'b.max.dev')."
+        },
+        "tagline": {
+          "type": "string",
+          "description": "A short, catchy phrase or slogan associated with the portfolio owner."
+        },
+        "bio": {
+          "type": "string",
+          "description": "A detailed biographical description of the portfolio owner."
+        },
+        "profileImageUrl": {
+          "type": "string",
+          "description": "URL to the profile image or avatar of the portfolio owner.",
+          "format": "uri"
+        },
+        "contactEmail": {
+          "type": "string",
+          "description": "Professional email address for contacting the portfolio owner.",
+          "format": "email"
+        },
+        "resumeUrl": {
+          "type": "string",
+          "description": "URL to a downloadable resume or CV document.",
+          "format": "uri"
+        }
       },
-      "required": ["title", "description", "category"]
+      "required": [
+        "id",
+        "alias",
+        "bio",
+        "contactEmail"
+      ]
     },
-    "Analysis": {
-      "title": "Analysis",
-      "description": "A saved text analysis report.",
+    "SocialMediaLink": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SocialMediaLink",
       "type": "object",
+      "description": "Represents a link to a social media or professional profile associated with the portfolio owner.",
       "properties": {
-        "title": { "type": "string", "description": "The user-defined title for the analysis." },
-        "originalText": { "type": "string", "description": "The original text that was analyzed." },
-        "sentiment": { "type": "string", "description": "AI-detected sentiment." },
-        "tone": { "type": "string", "description": "AI-detected tone." },
-        "keyPoints": { "type": "array", "items": { "type": "string" } },
-        "suggestions": { "type": "array", "items": { "type": "string" } },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the SocialMediaLink entity."
+        },
+        "platform": {
+          "type": "string",
+          "description": "The name of the social media or professional platform (e.g., 'GitHub', 'LinkedIn')."
+        },
+        "url": {
+          "type": "string",
+          "description": "The URL to the portfolio owner's profile on the specified platform.",
+          "format": "uri"
+        },
+        "userProfileId": {
+          "type": "string",
+          "description": "Reference to the UserProfile entity this link belongs to. (Relationship: UserProfile 1:N SocialMediaLink)"
+        }
       },
-      "required": ["title", "originalText", "sentiment"]
+      "required": [
+        "id",
+        "platform",
+        "url",
+        "userProfileId"
+      ]
+    },
+    "Category": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Category",
+      "type": "object",
+      "description": "Represents a distinct section or category within the portfolio, used for organizing items like 'Continuous Works' or 'Build Projects'.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Category entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The display name of the category (e.g., 'Build Projects', 'Skills Learning')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief explanation of what type of portfolio items belong to this category."
+        },
+        "displayOrder": {
+          "type": "number",
+          "description": "A numerical value indicating the order in which categories should be displayed in navigation."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "displayOrder"
+      ]
+    },
+    "Skill": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Skill",
+      "type": "object",
+      "description": "Represents a technical skill, technology, or competence demonstrated or acquired by the portfolio owner.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Skill entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the skill (e.g., 'React', 'Python', 'Data Modeling')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description or context for the skill, if needed."
+        },
+        "iconUrl": {
+          "type": "string",
+          "description": "URL to an icon image representing the skill.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "PortfolioItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PortfolioItem",
+      "type": "object",
+      "description": "Represents a single project, work entry, skill learned, or hobby showcased in the portfolio.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the PortfolioItem entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The main title of the portfolio item (e.g., 'E-commerce Platform', 'Learning AWS Cloud')."
+        },
+        "summary": {
+          "type": "string",
+          "description": "A concise, AI-generated summary of the item, suitable for display on item cards."
+        },
+        "description": {
+          "type": "string",
+          "description": "A comprehensive, detailed description of the portfolio item for its dedicated view."
+        },
+        "thumbnailImageUrl": {
+          "type": "string",
+          "description": "URL to the primary image displayed on the item card.",
+          "format": "uri"
+        },
+        "detailImageUrls": {
+          "type": "array",
+          "description": "An array of URLs for additional images providing more visual context in the detailed view.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "externalLinkUrl": {
+          "type": "string",
+          "description": "URL to an external resource related to the item, such as a live demo, repository, or detailed article.",
+          "format": "uri"
+        },
+        "categoryId": {
+          "type": "string",
+          "description": "Reference to the Category entity this portfolio item belongs to. (Relationship: Category 1:N PortfolioItem)"
+        },
+        "skillIds": {
+          "type": "array",
+          "description": "References to Skill entities associated with this portfolio item, representing technologies used or skills demonstrated. (Relationship: Skill N:N PortfolioItem)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "startDate": {
+          "type": "string",
+          "description": "The start date of the project, work, or learning period.",
+          "format": "date-time"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "The end date or completion date of the project, work, or learning period.",
+          "format": "date-time"
+        },
+        "isFeatured": {
+          "type": "boolean",
+          "description": "A flag indicating whether this item should be prominently featured on the portfolio."
+        },
+        "displayOrder": {
+          "type": "number",
+          "description": "A numerical value indicating the desired display order of the item within its category or featured list."
+        },
+        "userProfileId": {
+          "type": "string",
+          "description": "Reference to the UserProfile entity that owns this portfolio item. (Relationship: UserProfile 1:N PortfolioItem)"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "summary",
+        "description",
+        "thumbnailImageUrl",
+        "categoryId",
+        "userProfileId"
+      ]
     }
   },
   "auth": {
-    "providers": ["google.com"]
+    "providers": [
+      "password",
+      "anonymous"
+    ]
   },
   "firestore": {
-    "/projects/{projectId}": {
-      "schema": "Project",
-      "description": "Collection of portfolio projects."
-    },
-    "/analyses/{analysisId}": {
-      "schema": "Analysis",
-      "description": "Collection of saved text analyses."
-    }
+    "structure": [
+      {
+        "path": "/user_profiles/{ownerUid}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores the single owner's profile data for the portfolio. The '{ownerUid}' wildcard represents the authenticated user's ID who owns and manages this portfolio. The 'ownerUid' is implicitly denormalized in the path for authorization independence.",
+          "params": [
+            {
+              "name": "ownerUid",
+              "description": "The unique user ID of the authenticated portfolio owner."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/user_profiles/{ownerUid}/social_media_links/{socialMediaLinkId}",
+        "definition": {
+          "entityName": "SocialMediaLink",
+          "schema": {
+            "$ref": "#/backend/entities/SocialMediaLink"
+          },
+          "description": "Stores external social media and professional links associated with the portfolio owner. The '{ownerUid}' is denormalized in the path for authorization independence. '{socialMediaLinkId}' is the unique identifier for each social media link.",
+          "params": [
+            {
+              "name": "ownerUid",
+              "description": "The unique user ID of the authenticated portfolio owner."
+            },
+            {
+              "name": "socialMediaLinkId",
+              "description": "The unique identifier for a specific social media link."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/user_profiles/{ownerUid}/categories/{categoryId}",
+        "definition": {
+          "entityName": "Category",
+          "schema": {
+            "$ref": "#/backend/entities/Category"
+          },
+          "description": "Defines categories used for organizing portfolio items (e.g., 'Build Projects', 'Skills Learning'). The '{ownerUid}' is denormalized in the path for authorization independence. '{categoryId}' is the unique identifier for each category.",
+          "params": [
+            {
+              "name": "ownerUid",
+              "description": "The unique user ID of the authenticated portfolio owner."
+            },
+            {
+              "name": "categoryId",
+              "description": "The unique identifier for a specific category."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/user_profiles/{ownerUid}/skills/{skillId}",
+        "definition": {
+          "entityName": "Skill",
+          "schema": {
+            "$ref": "#/backend/entities/Skill"
+          },
+          "description": "Stores technical skills, technologies, or competences demonstrated by the portfolio owner. The '{ownerUid}' is denormalized in the path for authorization independence. '{skillId}' is the unique identifier for each skill.",
+          "params": [
+            {
+              "name": "ownerUid",
+              "description": "The unique user ID of the authenticated portfolio owner."
+            },
+            {
+              "name": "skillId",
+              "description": "The unique identifier for a specific skill."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/user_profiles/{ownerUid}/portfolio_items/{portfolioItemId}",
+        "definition": {
+          "entityName": "PortfolioItem",
+          "schema": {
+            "$ref": "#/backend/entities/PortfolioItem"
+          },
+          "description": "Stores individual portfolio entries such as projects, work experiences, or hobbies. The '{ownerUid}' is denormalized in the path for authorization independence. '{portfolioItemId}' is the unique identifier for each portfolio item. Documents include 'categoryId' and 'skillIds' as references to related entities.",
+          "params": [
+            {
+              "name": "ownerUid",
+              "description": "The unique user ID of the authenticated portfolio owner."
+            },
+            {
+              "name": "portfolioItemId",
+              "description": "The unique identifier for a specific portfolio item."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The recommended Firestore structure is designed around a single-owner portfolio model, prioritizing authorization independence and query efficiency. All portfolio-related data for the owner is logically grouped under a top-level collection `user_profiles/{ownerUid}`. This structure inherently denormalizes the `ownerUid` into the document path for every related entity (SocialMediaLink, Category, Skill, PortfolioItem).\n\n**Authorization Independence:**\nBy nesting all owner-specific data under `/user_profiles/{ownerUid}/...`, the `ownerUid` is explicitly part of the document's path. This is the primary denormalization strategy for authorization. For example, to manage a `PortfolioItem`, the security rules can directly check `allow write: if request.auth.uid == resource.data.ownerUid && request.auth.uid == ownerUid;` (where `ownerUid` is the wildcard in the path). This eliminates the need for expensive and non-atomic `get()` operations to check parent documents for ownership or membership, thus achieving Authorization Independence. The `UserProfile` entity itself also sits at `/user_profiles/{ownerUid}`, making it self-contained for authorization checks.\n\n**QAPs (Rules are not Filters):**\nThis structure ensures that security rules do not act as filters, upholding Query-Ability-Predictability. Since all content under `/user_profiles/{ownerUid}` is intended to be publicly readable, rules for read operations can be simply `allow read: if true;` for all subcollections, provided the `ownerUid` in the path is known (which it will be for the public-facing portfolio of 'b.max.dev').\n\nFor management (write operations), the rules would enforce `request.auth.uid == ownerUid`. Any `list` query for items within a specific owner's portfolio (e.g., `/user_profiles/{ownerUid}/portfolio_items`) will only return data already secured by the path itself, meaning the query results are predictable and do not require client-side filtering or server-side filtering beyond what the rules explicitly allow. The structural segregation of data belonging to a specific `ownerUid` ensures that `list` queries are inherently secure and efficient, as they target a specific, authorized subtree."
   }
 }

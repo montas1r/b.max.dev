@@ -1,0 +1,141 @@
+/**
+ * Firestore Security Rules
+ *
+ * Core Philosophy:
+ * This ruleset implements a single-owner portfolio model where each user (identified by their UID) 
+ * owns a dedicated branch of the data tree. The security model is "Public Read, Owner Write," 
+ * meaning anyone can view portfolio content, but only the authenticated owner can modify it.
+ *
+ * Data Structure:
+ * All data is hierarchically organized under top-level user documents:
+ * /user_profiles/{ownerUid}
+ *   /social_media_links/{id}
+ *   /categories/{id}
+ *   /skills/{id}
+ *   /portfolio_items/{id}
+ *
+ * Key Security Decisions:
+ * 1. Authorization Independence: The owner's UID is embedded directly in the document path 
+ *    ({ownerUid}). This allows rules to verify ownership instantly without performing 
+ *    additional document lookups (get() calls).
+ * 2. Prototyping Flexibility: While authorization (who can write) is strictly enforced, 
+ *    the specific shape of the data (fields, types) is intentionally flexible to allow 
+ *    for rapid iteration during the prototyping phase.
+ * 3. Public Accessibility: Since this is a portfolio application, read access (get/list) 
+ *    is granted to everyone (even unauthenticated users) across all collections.
+ *
+ * Denormalization for Authorization:
+ * The `ownerUid` is the primary key for authorization. It is denormalized into the 
+ * collection path itself. For resources that include a `userProfileId` field (like 
+ * PortfolioItems), the rules enforce that this field must match the path's `ownerUid`.
+ */
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Helper Functions ---
+
+    /**
+     * @description Checks if the request is made by an authenticated user.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the authenticated user matches the provided userId.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * @description Combines ownership check with existence check for updates and deletes.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Checks if a specific field in the document remains unchanged during an update.
+     */
+    function isUnchanged(field) {
+      return request.resource.data[field] == resource.data[field];
+    }
+
+    // --- Collection Rules ---
+
+    /**
+     * @description Rules for the top-level user profile.
+     * @path /user_profiles/{ownerUid}
+     * @allow (get) Anyone can view a profile.
+     * @allow (create) Authenticated user 'abc' can create profile '/user_profiles/abc'.
+     * @deny (update) User 'abc' cannot update profile '/user_profiles/xyz'.
+     * @principle Path-based ownership and data-path consistency.
+     */
+    match /user_profiles/{ownerUid} {
+      allow get, list: if true;
+      allow create: if isOwner(ownerUid) && request.resource.data.id == ownerUid;
+      allow update: if isExistingOwner(ownerUid) && isUnchanged('id');
+      allow delete: if isExistingOwner(ownerUid);
+
+      /**
+       * @description Links to social and professional platforms.
+       * @path /user_profiles/{ownerUid}/social_media_links/{socialMediaLinkId}
+       * @allow (list) Anyone can list links for a profile.
+       * @allow (create) Owner 'abc' can create a link if userProfileId is 'abc'.
+       * @deny (create) Owner 'abc' cannot create a link with userProfileId 'xyz'.
+       * @principle Nested ownership and relational integrity validation.
+       */
+      match /social_media_links/{socialMediaLinkId} {
+        allow get, list: if true;
+        allow create: if isOwner(ownerUid) && request.resource.data.userProfileId == ownerUid;
+        allow update: if isExistingOwner(ownerUid) && isUnchanged('userProfileId');
+        allow delete: if isExistingOwner(ownerUid);
+      }
+
+      /**
+       * @description Categories for organizing portfolio items.
+       * @path /user_profiles/{ownerUid}/categories/{categoryId}
+       * @allow (get) Anyone can view category details.
+       * @allow (update) Owner 'abc' can update their own categories.
+       * @deny (delete) Anonymous user cannot delete a category.
+       * @principle Subcollection access restricted by parent path wildcard.
+       */
+      match /categories/{categoryId} {
+        allow get, list: if true;
+        allow create: if isOwner(ownerUid);
+        allow update, delete: if isExistingOwner(ownerUid);
+      }
+
+      /**
+       * @description Skills and technologies demonstrated by the owner.
+       * @path /user_profiles/{ownerUid}/skills/{skillId}
+       * @allow (list) Anyone can see the list of skills.
+       * @allow (create) Owner 'abc' creates skill in their own subcollection.
+       * @principle Ensures data isolation between different portfolio owners.
+       */
+      match /skills/{skillId} {
+        allow get, list: if true;
+        allow create: if isOwner(ownerUid);
+        allow update, delete: if isExistingOwner(ownerUid);
+      }
+
+      /**
+       * @description Individual projects or work entries.
+       * @path /user_profiles/{ownerUid}/portfolio_items/{portfolioItemId}
+       * @allow (create) Owner 'abc' creates item with userProfileId 'abc'.
+       * @allow (update) Owner 'abc' updates their own item.
+       * @deny (update) Owner 'abc' attempts to change the userProfileId to 'xyz'.
+       * @principle Immutability of relational fields to prevent data hijacking.
+       */
+      match /portfolio_items/{portfolioItemId} {
+        allow get, list: if true;
+        allow create: if isOwner(ownerUid) && request.resource.data.userProfileId == ownerUid;
+        allow update: if isExistingOwner(ownerUid) && isUnchanged('userProfileId');
+        allow delete: if isExistingOwner(ownerUid);
+      }
+    }
+  }
+}
