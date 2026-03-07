@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-bg",
+      "description": "Abstract tech background",
+      "imageUrl": "https://picsum.photos/seed/tech/1920/1080",
+      "imageHint": "abstract technology"
+    },
+    {
+      "id": "proj-continuous",
+      "description": "Continuous work illustration",
+      "imageUrl": "https://picsum.photos/seed/work/800/600",
+      "imageHint": "coding work"
+    },
+    {
+      "id": "proj-build",
+      "description": "Building projects",
+      "imageUrl": "https://picsum.photos/seed/build/800/600",
+      "imageHint": "startup product"
+    },
+    {
+      "id": "proj-skills",
+      "description": "Learning skills",
+      "imageUrl": "https://picsum.photos/seed/learn/800/600",
+      "imageHint": "education study"
+    },
+    {
+      "id": "proj-works",
+      "description": "Professional works",
+      "imageUrl": "https://picsum.photos/seed/prof/800/600",
+      "imageHint": "office workspace"
+    },
+    {
+      "id": "proj-hobbies",
+      "description": "Creative hobbies",
+      "imageUrl": "https://picsum.photos/seed/hobby/800/600",
+      "imageHint": "creative hobby"
+    }
+  ]
 }
