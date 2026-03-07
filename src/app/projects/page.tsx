@@ -8,7 +8,7 @@ import { EditProjectDialog } from '@/components/portfolio/EditProjectDialog';
 import { DeleteProjectDialog } from '@/components/portfolio/DeleteProjectDialog';
 import { PortfolioItem } from '@/types/portfolio';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { Loader2, LayoutGrid } from 'lucide-react';
 
@@ -18,6 +18,9 @@ export default function ProjectsPage() {
   const [deletingProject, setDeletingProject] = useState<PortfolioItem | null>(null);
   const [year, setYear] = useState<number | null>(null);
   const db = useFirestore();
+  const { user } = useUser();
+
+  const isAdmin = user && !user.isAnonymous;
 
   useEffect(() => {
     setYear(new Date().getFullYear());
@@ -41,7 +44,7 @@ export default function ProjectsPage() {
             A dynamic collection of my technical builds and professional works.
           </p>
         </div>
-        <AddProjectDialog />
+        {isAdmin && <AddProjectDialog />}
       </div>
 
       {loading ? (
@@ -66,8 +69,8 @@ export default function ProjectsPage() {
                 <ProjectCard 
                   item={item} 
                   onClick={setSelectedProject} 
-                  onEdit={setEditingProject}
-                  onDelete={setDeletingProject}
+                  onEdit={isAdmin ? setEditingProject : undefined}
+                  onDelete={isAdmin ? setDeletingProject : undefined}
                 />
               </motion.div>
             ))}
@@ -81,7 +84,7 @@ export default function ProjectsPage() {
         >
           <LayoutGrid className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
           <p className="text-muted-foreground italic mb-6">No projects found in the cloud.</p>
-          <AddProjectDialog />
+          {isAdmin && <AddProjectDialog />}
         </motion.div>
       )}
 
@@ -89,27 +92,31 @@ export default function ProjectsPage() {
         item={selectedProject} 
         isOpen={!!selectedProject} 
         onClose={() => setSelectedProject(null)}
-        onEdit={(item) => {
+        onEdit={isAdmin ? (item) => {
           setSelectedProject(null);
           setEditingProject(item);
-        }}
-        onDelete={(item) => {
+        } : undefined}
+        onDelete={isAdmin ? (item) => {
           setSelectedProject(null);
           setDeletingProject(item);
-        }}
+        } : undefined}
       />
 
-      <EditProjectDialog 
-        project={editingProject}
-        isOpen={!!editingProject}
-        onOpenChange={(open) => !open && setEditingProject(null)}
-      />
+      {isAdmin && (
+        <>
+          <EditProjectDialog 
+            project={editingProject}
+            isOpen={!!editingProject}
+            onOpenChange={(open) => !open && setEditingProject(null)}
+          />
 
-      <DeleteProjectDialog 
-        project={deletingProject}
-        isOpen={!!deletingProject}
-        onOpenChange={(open) => !open && setDeletingProject(null)}
-      />
+          <DeleteProjectDialog 
+            project={deletingProject}
+            isOpen={!!deletingProject}
+            onOpenChange={(open) => !open && setDeletingProject(null)}
+          />
+        </>
+      )}
 
       <footer className="py-12 border-t border-border mt-20 opacity-60">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">

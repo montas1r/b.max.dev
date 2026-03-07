@@ -1,27 +1,30 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow public read/write access to projects and analyses for the personal portfolio prototype
-    match /projects/{projectId} {
-      allow read, write: if true;
-    }
-    
-    match /analyses/{analysisId} {
-      allow read, write: if true;
+    // Helper function to check if the user is the authenticated owner (non-anonymous)
+    function isOwner() {
+      return request.auth != null && request.auth.token.firebase.sign_in_provider != 'anonymous';
     }
 
-    // Single-owner portfolio structure rules
+    // Projects are publicly readable, but only the owner can create, update, or delete.
+    match /projects/{projectId} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+    
+    // Analysis history is private to the owner. Only the owner can execute/store audits.
+    match /analyses/{analysisId} {
+      allow read, write: if isOwner();
+    }
+
+    // User profiles are publicly readable, but only the specific owner can modify their own.
     match /user_profiles/{ownerUid} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isOwner() && request.auth.uid == ownerUid;
       
-      match /social_media_links/{id} { allow read, write: if true; }
-      match /categories/{id} { allow read, write: if true; }
-      match /skills/{id} { allow read, write: if true; }
-      match /portfolio_items/{id} { allow read, write: if true; }
-      
-      // Recursive match for any other subcollections
       match /{allSubcollections=**} {
-        allow read, write: if true;
+        allow read: if true;
+        allow write: if isOwner() && request.auth.uid == ownerUid;
       }
     }
   }

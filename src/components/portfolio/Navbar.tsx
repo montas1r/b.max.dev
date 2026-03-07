@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Shield, ShieldCheck } from 'lucide-react';
+import { useUser } from '@/firebase';
 
 const navItems = [
   { name: 'Home', href: '/' },
@@ -15,8 +16,11 @@ const navItems = [
 
 export function Navbar() {
   const pathname = usePathname();
+  const { user } = useUser();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  const isAdmin = user && !user.isAnonymous;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -63,6 +67,17 @@ export function Navbar() {
               </Link>
             );
           })}
+          
+          <Link 
+            href="/admin" 
+            className={cn(
+              "flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors",
+              isAdmin ? "text-primary" : "text-muted-foreground hover:text-primary"
+            )}
+          >
+            {isAdmin ? <ShieldCheck className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
+            {isAdmin ? "Admin" : "Login"}
+          </Link>
         </nav>
 
         {/* Availability Badge */}
@@ -106,6 +121,13 @@ export function Navbar() {
                   </Link>
                 );
               })}
+              <Link
+                href="/admin"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-sm font-bold uppercase tracking-widest py-3 px-4 rounded-lg text-primary bg-primary/5"
+              >
+                Admin Access
+              </Link>
             </nav>
           </motion.div>
         )}
