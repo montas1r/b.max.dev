@@ -48,18 +48,30 @@ export default function AdminPage() {
     const isTargetAdmin = values.username === 'bingo.max' && values.password === 'Bing0m4x';
     
     try {
-      // Map username to a dummy email for Firebase Auth compatibility
+      // Map username to a more standard dummy email for Firebase Auth compatibility
       const email = values.username.includes('@') 
         ? values.username 
-        : `${values.username}@admin.local`;
+        : `${values.username}@bmax.dev`;
       
       try {
         // Attempt sign in
         await signInWithEmailAndPassword(auth, email, values.password);
       } catch (signInErr: any) {
+        // Modern Firebase Auth often returns 'auth/invalid-credential' for both wrong pass and user-not-found
+        const isAuthError = [
+          'auth/invalid-credential',
+          'auth/user-not-found',
+          'auth/wrong-password'
+        ].includes(signInErr.code);
+
         // If sign in fails and it's the intended admin, attempt to create the account (auto-provisioning)
-        if (isTargetAdmin && (signInErr.code === 'auth/invalid-credential' || signInErr.code === 'auth/user-not-found')) {
-          await createUserWithEmailAndPassword(auth, email, values.password);
+        if (isTargetAdmin && isAuthError) {
+          try {
+            await createUserWithEmailAndPassword(auth, email, values.password);
+          } catch (createErr: any) {
+            // If creation fails (e.g. email already exists but pass was wrong), throw the original error
+            throw signInErr;
+          }
         } else {
           throw signInErr;
         }
@@ -67,7 +79,7 @@ export default function AdminPage() {
       
       router.push('/projects');
     } catch (err: any) {
-      console.error(err);
+      // We don't log to console.error here as it's handled by the UI error state
       setError("Authentication failed. Please verify your credentials.");
     }
   }
