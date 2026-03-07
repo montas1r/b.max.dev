@@ -23,6 +23,7 @@
         "imageUrl": { "type": "string" },
         "category": { "type": "string" },
         "tags": { "type": "array", "items": { "type": "string" } },
+        "liveUrl": { "type": "string", "description": "URL for direct web access or download." },
         "createdAt": { "type": "object" }
       },
       "required": ["title", "description", "category"]

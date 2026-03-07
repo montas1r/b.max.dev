@@ -26,8 +26,8 @@ export const portfolioItems: PortfolioItem[] = [
     category: 'Build Projects',
     imageUrl: 'https://picsum.photos/seed/cloud/800/600',
     tags: ['Next.js', 'Go', 'Kubernetes'],
+    liveUrl: 'https://nexus-cloud-demo.com',
     links: [
-      { label: 'Live Demo', url: '#' },
       { label: 'GitHub', url: '#' }
     ]
   },
@@ -41,8 +41,8 @@ export const portfolioItems: PortfolioItem[] = [
     category: 'Continuous Works',
     imageUrl: 'https://picsum.photos/seed/ai/800/600',
     tags: ['React', 'Genkit', 'Firebase'],
+    liveUrl: 'https://echo-ai-analysis.io',
     links: [
-      { label: 'Live Demo', url: '#' },
       { label: 'GitHub', url: '#' }
     ]
   },
@@ -56,8 +56,8 @@ export const portfolioItems: PortfolioItem[] = [
     category: 'Build Projects',
     imageUrl: 'https://picsum.photos/seed/data/800/600',
     tags: ['TypeScript', 'Three.js', 'Redis'],
+    // No liveUrl provided to demonstrate locked state
     links: [
-      { label: 'Live Demo', url: '#' },
       { label: 'GitHub', url: '#' }
     ]
   }

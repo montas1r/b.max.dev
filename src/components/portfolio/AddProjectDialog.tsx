@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -31,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PlusCircle, Loader2, Image as ImageIcon } from 'lucide-react';
+import { PlusCircle, Loader2, Image as ImageIcon, Globe } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -44,6 +43,7 @@ const formSchema = z.object({
   fullDescription: z.string().min(10, "Detailed description is required"),
   category: z.enum(['Continuous Works', 'Build Projects', 'Skills Learning', 'Hobbies']),
   imageUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
+  liveUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
   tags: z.string().describe("Comma separated tags"),
 });
 
@@ -58,6 +58,7 @@ export function AddProjectDialog() {
       fullDescription: "",
       category: "Build Projects",
       imageUrl: "",
+      liveUrl: "",
       tags: "React, Next.js, Tailwind",
     },
   });
@@ -65,10 +66,8 @@ export function AddProjectDialog() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!db) return;
 
-    // Determine the image to use
     let finalImageUrl = values.imageUrl;
     if (!finalImageUrl) {
-      // Find a category-specific placeholder or use a default
       const categoryMap: Record<string, string> = {
         'Continuous Works': 'proj-continuous',
         'Build Projects': 'proj-build',
@@ -87,7 +86,6 @@ export function AddProjectDialog() {
       createdAt: serverTimestamp(),
     };
 
-    // Initiate the write and handle errors via catch block
     addDoc(collection(db, 'projects'), projectData)
       .catch(async (error) => {
         const permissionError = new FirestorePermissionError({
@@ -98,7 +96,6 @@ export function AddProjectDialog() {
         errorEmitter.emit('permission-error', permissionError);
       });
 
-    // Close the dialog and reset the form immediately (Optimistic UI)
     setIsOpen(false);
     form.reset();
   }
@@ -111,7 +108,7 @@ export function AddProjectDialog() {
           Add Project
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] bg-card border-border">
+      <DialogContent className="sm:max-w-[550px] bg-card border-border">
         <DialogHeader>
           <DialogTitle>Add New Project</DialogTitle>
         </DialogHeader>
@@ -130,7 +127,8 @@ export function AddProjectDialog() {
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-4">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="category"
@@ -156,45 +154,67 @@ export function AddProjectDialog() {
               />
               <FormField
                 control={form.control}
-                name="imageUrl"
+                name="liveUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Image URL (Optional)</FormLabel>
+                    <FormLabel>Live / Web Access URL</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input placeholder="https://..." {...field} />
-                        <ImageIcon className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground opacity-50" />
+                        <Input placeholder="https://demo.com" {...field} />
+                        <Globe className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground opacity-50" />
                       </div>
                     </FormControl>
                     <FormDescription className="text-[10px]">
-                      Leave empty to use a category placeholder.
+                      If missing, the button will appear locked.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="imageUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image URL (Optional)</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input placeholder="https://..." {...field} />
+                      <ImageIcon className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground opacity-50" />
+                    </div>
+                  </FormControl>
+                  <FormDescription className="text-[10px]">
+                    Leave empty to use a category placeholder.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Short Description</FormLabel>
+                  <FormLabel>Short Tagline</FormLabel>
                   <FormControl>
-                    <Input placeholder="A brief tagline..." {...field} />
+                    <Input placeholder="A brief description..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
               name="fullDescription"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Case Study Detail</FormLabel>
+                  <FormLabel>Detailed Case Study</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Detailed breakdown of the project..." className="min-h-[100px]" {...field} />
+                    <Textarea placeholder="Explain the project details..." className="min-h-[100px]" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

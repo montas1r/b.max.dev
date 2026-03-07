@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Sparkles, Loader2, AlertCircle, CheckCircle2, Target } from 'lucide-react';
+import { ExternalLink, Sparkles, Loader2, AlertCircle, CheckCircle2, Target, Globe, Lock } from 'lucide-react';
 import Image from 'next/image';
 import { generateProjectSummary } from '@/ai/flows/ai-generated-project-summary-flow';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -78,7 +78,6 @@ export function ProjectDetail({ item, isOpen, onClose }: ProjectDetailProps) {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
               <div className="lg:col-span-2 space-y-8">
-                {/* Problem & Solution Sections */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {item.problem && (
                     <div className="p-5 rounded-xl border border-border bg-card/50">
@@ -127,7 +126,7 @@ export function ProjectDetail({ item, isOpen, onClose }: ProjectDetailProps) {
                 )}
 
                 {error && (
-                  <div className="flex items-center gap-2 text-destructive text-xs p-3 bg-destructive/5 rounded-md border border-destructive/20">
+                  <div className="flex items-center gap-2 text-destructive text-sm p-3 bg-destructive/5 rounded-md border border-destructive/20">
                     <AlertCircle className="w-4 h-4" />
                     {error}
                   </div>
@@ -137,19 +136,45 @@ export function ProjectDetail({ item, isOpen, onClose }: ProjectDetailProps) {
               <div className="space-y-8">
                 <div className="p-6 rounded-xl border border-border bg-muted/10 space-y-6">
                   <div className="space-y-4">
-                    <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Resources</h4>
+                    <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Access & Resources</h4>
                     <div className="flex flex-col gap-3">
-                      {item.links && item.links.length > 0 ? (
-                        item.links.map(link => (
-                          <Button key={link.label} variant="outline" className="w-full justify-between group" asChild>
-                            <a href={link.url} target="_blank" rel="noopener noreferrer">
-                              {link.label}
-                              <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                            </a>
-                          </Button>
-                        ))
-                      ) : (
-                        <p className="text-xs text-muted-foreground italic">No external links available.</p>
+                      {/* Live Access Button */}
+                      <Button 
+                        variant={item.liveUrl ? "default" : "secondary"} 
+                        className={`w-full justify-between group h-12 ${!item.liveUrl && 'opacity-50 cursor-not-allowed'}`}
+                        disabled={!item.liveUrl}
+                        asChild={!!item.liveUrl}
+                      >
+                        {item.liveUrl ? (
+                          <a href={item.liveUrl} target="_blank" rel="noopener noreferrer">
+                            <span className="flex items-center gap-2">
+                              <Globe className="w-4 h-4" />
+                              Direct Web Access
+                            </span>
+                            <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                          </a>
+                        ) : (
+                          <span className="flex items-center justify-between w-full">
+                            <span className="flex items-center gap-2">
+                              <Globe className="w-4 h-4" />
+                              Access Locked
+                            </span>
+                            <Lock className="w-4 h-4 opacity-50" />
+                          </span>
+                        )}
+                      </Button>
+
+                      {item.links && item.links.length > 0 && (
+                        <div className="pt-2 flex flex-col gap-2">
+                          {item.links.map(link => (
+                            <Button key={link.label} variant="outline" className="w-full justify-between group" asChild>
+                              <a href={link.url} target="_blank" rel="noopener noreferrer">
+                                {link.label}
+                                <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                              </a>
+                            </Button>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>

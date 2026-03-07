@@ -6,7 +6,7 @@ import { PortfolioItem } from '@/types/portfolio';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
-import { ExternalLink, Github } from 'lucide-react';
+import { ExternalLink, Github, Globe } from 'lucide-react';
 
 interface ProjectCardProps {
   item: PortfolioItem;
@@ -33,6 +33,11 @@ export function ProjectCard({ item, onClick }: ProjectCardProps) {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
              <div className="flex gap-4">
+               {item.liveUrl && (
+                 <div className="text-primary hover:text-primary-foreground bg-primary/10 hover:bg-primary p-2 rounded-full transition-all">
+                    <Globe className="w-5 h-5" />
+                 </div>
+               )}
                {item.links?.map(link => (
                  <div key={link.label} className="text-primary hover:text-primary-foreground bg-primary/10 hover:bg-primary p-2 rounded-full transition-all">
                     {link.label === 'GitHub' ? <Github className="w-5 h-5" /> : <ExternalLink className="w-5 h-5" />}
