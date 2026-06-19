@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,14 +26,11 @@ import {
   Lock
 } from 'lucide-react';
 import { analyzeText, type TextAnalysisOutput } from '@/ai/flows/text-analysis-flow';
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { useUser } from '@/supabase/provider'; // [FIXED: Point to your Supabase hook]
 import Link from 'next/link';
 
 export function TextAnalysisTool() {
-  const { user } = useUser();
+  const { user, supabase } = useUser(); // [FIXED: Extract user and supabase instance]
   const [inputText, setInputText] = useState('');
   const [analysisTitle, setAnalysisTitle] = useState('');
   const [result, setResult] = useState<TextAnalysisOutput | null>(null);
@@ -42,15 +39,37 @@ export function TextAnalysisTool() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('analyze');
 
-  const isAdmin = user && !user.isAnonymous;
-  const db = useFirestore();
+  // Local state to store archives instead of useCollection
+  const [savedAnalyses, setSavedAnalyses] = useState<any[]>([]);
+  const [loadingAnalyses, setLoadingAnalyses] = useState(false);
 
-  const analysesQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null;
-    return query(collection(db, 'analyses'), orderBy('createdAt', 'desc'));
-  }, [db, isAdmin]);
+  const isAdmin = !!user;
 
-  const { data: savedAnalyses, loading: loadingAnalyses } = useCollection<any>(analysesQuery);
+  // [NEW: Fetch archived audits using Supabase]
+  const fetchAnalyses = async () => {
+    if (!isAdmin) return;
+    setLoadingAnalyses(true);
+    try {
+      const { data, error: dbError } = await supabase
+        .from('analyses')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (dbError) throw dbError;
+      setSavedAnalyses(data || []);
+    } catch (err: any) {
+      console.error("Error loading archive:", err.message);
+    } finally {
+      setLoadingAnalyses(false);
+    }
+  };
+
+  // Automatically fetch history when changing to the archive tab
+  useEffect(() => {
+    if (activeTab === 'history') {
+      fetchAnalyses();
+    }
+  }, [activeTab, user]);
 
   const handleAnalyze = async () => {
     if (!isAdmin) return;
@@ -75,55 +94,67 @@ export function TextAnalysisTool() {
   };
 
   const handleSaveAnalysis = async () => {
-    if (!db || !result || !inputText || !isAdmin) return;
+    if (!result || !inputText || !isAdmin) return;
     
     setIsSaving(true);
     const analysisData = {
       title: analysisTitle || 'Untitled Analysis',
-      originalText: inputText,
-      ...result,
-      createdAt: serverTimestamp(),
+      original_text: inputText, // [FIXED: standard snake_case for relational db columns]
+      sentiment: result.sentiment,
+      tone: result.tone,
+      key_points: result.keyPoints,
+      suggestions: result.suggestions,
+      user_id: user.id // Best practice to tie database mutations to an auth ID
     };
 
-    addDoc(collection(db, 'analyses'), analysisData)
-      .catch(async (error) => {
-        const permissionError = new FirestorePermissionError({
-          path: 'analyses',
-          operation: 'create',
-          requestResourceData: analysisData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-      });
+    try {
+      // [FIXED: Swapped addDoc with Supabase .insert()]
+      const { error: insertError } = await supabase
+        .from('analyses')
+        .insert([analysisData]);
 
-    setTimeout(() => {
+      if (insertError) throw insertError;
+
+      setTimeout(() => {
+        setIsSaving(false);
+        setActiveTab('history');
+        setInputText('');
+        setAnalysisTitle('');
+        setResult(null);
+      }, 300);
+    } catch (err: any) {
+      setError(err.message || "Failed to save analysis.");
       setIsSaving(false);
-      setActiveTab('history');
-      setInputText('');
-      setAnalysisTitle('');
-      setResult(null);
-    }, 300);
+    }
   };
 
-  const handleDeleteAnalysis = (id: string, e: React.MouseEvent) => {
+  const handleDeleteAnalysis = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!db || !isAdmin) return;
-    deleteDoc(doc(db, 'analyses', id))
-      .catch(async (error) => {
-        const permissionError = new FirestorePermissionError({
-          path: `analyses/${id}`,
-          operation: 'delete',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-      });
+    if (!isAdmin) return;
+    
+    try {
+      // [FIXED: Swapped deleteDoc with Supabase .delete()]
+      const { error: deleteError } = await supabase
+        .from('analyses')
+        .delete()
+        .eq('id', id);
+
+      if (deleteError) throw deleteError;
+
+      // Optimistically clean local UI view after deletion
+      setSavedAnalyses((prev) => prev.filter((item) => item.id !== id));
+    } catch (err: any) {
+      console.error("Failed to delete analysis:", err.message);
+    }
   };
 
   const loadAnalysis = (analysis: any) => {
-    setInputText(analysis.originalText);
+    setInputText(analysis.original_text || analysis.originalText);
     setAnalysisTitle(analysis.title);
     setResult({
       sentiment: analysis.sentiment,
       tone: analysis.tone,
-      keyPoints: analysis.keyPoints,
+      keyPoints: analysis.key_points || analysis.keyPoints,
       suggestions: analysis.suggestions
     });
     setActiveTab('analyze');
@@ -357,7 +388,7 @@ export function TextAnalysisTool() {
                               {analysis.sentiment}
                             </Badge>
                             <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-                              {analysis.createdAt?.toDate ? analysis.createdAt.toDate().toLocaleDateString() : 'Just now'}
+                              {analysis.created_at ? new Date(analysis.created_at).toLocaleDateString() : 'Just now'}
                             </span>
                           </div>
                         </div>

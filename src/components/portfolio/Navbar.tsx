@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Menu, X, Shield, ShieldCheck } from 'lucide-react';
-import { useUser } from '@/firebase';
+import { useUser } from '@/supabase';
 
 const navItems = [
   { name: 'Home', href: '/' },

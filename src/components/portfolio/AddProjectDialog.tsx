@@ -31,10 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { PlusCircle, Loader2, Image as ImageIcon, Globe } from 'lucide-react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { useUser } from '@/supabase/provider';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const formSchema = z.object({
@@ -47,9 +44,15 @@ const formSchema = z.object({
   tags: z.string().describe("Comma separated tags"),
 });
 
-export function AddProjectDialog() {
+// [FIXED] Define interface configuration to accept the update function from the parent view context
+interface AddProjectDialogProps {
+  onSuccess?: () => void;
+}
+
+export function AddProjectDialog({ onSuccess }: AddProjectDialogProps) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const db = useFirestore();
+  const { supabase } = useUser();
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -64,8 +67,6 @@ export function AddProjectDialog() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!db) return;
-
     let finalImageUrl = values.imageUrl;
     if (!finalImageUrl) {
       const categoryMap: Record<string, string> = {
@@ -80,24 +81,28 @@ export function AddProjectDialog() {
     }
 
     const projectData = {
-      ...values,
-      imageUrl: finalImageUrl,
+      title: values.title,
+      description: values.description,
+      full_description: values.fullDescription, 
+      category: values.category,
+      image_url: finalImageUrl,                 
+      live_url: values.liveUrl || null,         
       tags: values.tags.split(',').map(t => t.trim()).filter(Boolean),
-      createdAt: serverTimestamp(),
+      created_at: new Date().toISOString(), 
     };
 
-    addDoc(collection(db, 'projects'), projectData)
-      .catch(async (error) => {
-        const permissionError = new FirestorePermissionError({
-          path: 'projects',
-          operation: 'create',
-          requestResourceData: projectData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-      });
+    const { error } = await supabase
+      .from('projects')
+      .insert([projectData]);
 
-    setIsOpen(false);
-    form.reset();
+    if (error) {
+      console.error("Database permission or execution error creating entry:", error.message);
+    } else {
+      // [FIXED] Notify parent view state array that a structural insertion occurred before closing UI wrapper
+      if (onSuccess) onSuccess();
+      setIsOpen(false);
+      form.reset();
+    }
   }
 
   return (

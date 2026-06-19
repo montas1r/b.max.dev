@@ -31,13 +31,21 @@ export function ProjectDetail({ item, isOpen, onClose, onEdit, onDelete }: Proje
 
   if (!item) return null;
 
+  // [FIXED] Bridge standard snake_case and camelCase field payloads securely
+  const dbImageUrl = (item as any).image_url;
+  const rawSrc = item.imageUrl || dbImageUrl;
+  const validImageSrc = rawSrc && rawSrc.trim() !== "" ? rawSrc : `https://picsum.photos/seed/${item.title || 'project'}/800/600`;
+
+  const validLiveUrl = item.liveUrl || (item as any).live_url;
+  const validFullDescription = item.fullDescription || (item as any).full_description || item.description || "";
+
   const handleGenerateSummary = async () => {
     setIsGenerating(true);
     setError(null);
     try {
       const res = await generateProjectSummary({
         title: item.title,
-        description: item.fullDescription,
+        description: validFullDescription,
       });
       setSummary(res.summary);
     } catch (err) {
@@ -53,10 +61,11 @@ export function ProjectDetail({ item, isOpen, onClose, onEdit, onDelete }: Proje
         <ScrollArea className="max-h-[90vh]">
           <div className="relative aspect-video w-full overflow-hidden bg-muted/20">
             <Image
-              src={item.imageUrl}
-              alt={item.title}
+              src={validImageSrc}
+              alt={item.title || "Project Detail Image"}
               fill
               className="object-cover"
+              sizes="(max-width: 1200px) 100vw, 800px"
               priority
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
@@ -73,7 +82,7 @@ export function ProjectDetail({ item, isOpen, onClose, onEdit, onDelete }: Proje
           <div className="p-6 md:p-8 space-y-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex flex-wrap gap-2">
-                {item.tags.map(tag => (
+                {item.tags && item.tags.map(tag => (
                   <Badge key={tag} variant="secondary" className="bg-secondary/40 text-muted-foreground px-3 py-1">
                     {tag}
                   </Badge>
@@ -125,7 +134,7 @@ export function ProjectDetail({ item, isOpen, onClose, onEdit, onDelete }: Proje
                 <div className="space-y-4">
                   <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground border-b border-border pb-2">Case Study Details</h4>
                   <p className="text-foreground leading-relaxed whitespace-pre-wrap text-sm md:text-base opacity-90">
-                    {item.fullDescription}
+                    {validFullDescription}
                   </p>
                 </div>
 
@@ -158,13 +167,13 @@ export function ProjectDetail({ item, isOpen, onClose, onEdit, onDelete }: Proje
                     <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Access & Resources</h4>
                     <div className="flex flex-col gap-3">
                       <Button 
-                        variant={item.liveUrl ? "default" : "secondary"} 
-                        className={`w-full justify-between group h-12 ${!item.liveUrl && 'opacity-50 cursor-not-allowed'}`}
-                        disabled={!item.liveUrl}
-                        asChild={!!item.liveUrl}
+                        variant={validLiveUrl ? "default" : "secondary"} 
+                        className={`w-full justify-between group h-12 ${!validLiveUrl && 'opacity-50 cursor-not-allowed'}`}
+                        disabled={!validLiveUrl}
+                        asChild={!!validLiveUrl}
                       >
-                        {item.liveUrl ? (
-                          <a href={item.liveUrl} target="_blank" rel="noopener noreferrer">
+                        {validLiveUrl ? (
+                          <a href={validLiveUrl} target="_blank" rel="noopener noreferrer">
                             <span className="flex items-center gap-2">
                               <Globe className="w-4 h-4" />
                               Direct Web Access

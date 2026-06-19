@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from 'react';
@@ -17,8 +16,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { useAuth, useUser } from '@/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { useUser } from '@/supabase/provider'; 
 import { Loader2, LogIn, LogOut, ShieldCheck, AlertCircle, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -28,8 +26,7 @@ const authSchema = z.object({
 });
 
 export default function AdminPage() {
-  const { user, isUserLoading } = useUser();
-  const auth = useAuth();
+  const { user, isUserLoading, supabase } = useUser(); 
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
 
@@ -41,51 +38,57 @@ export default function AdminPage() {
     },
   });
 
-  const isAdmin = user && !user.isAnonymous;
+  const isAdmin = !!user;
 
   async function onAuth(values: z.infer<typeof authSchema>) {
     setError(null);
     const isTargetAdmin = values.username === 'bingo.max' && values.password === 'Bing0m4x';
     
+    // Map username to a standard email format for Supabase Auth consistency
+    const email = values.username.includes('@') 
+      ? values.username 
+      : `${values.username}@bmax.dev`;
+    
     try {
-      // Map username to a more standard dummy email for Firebase Auth compatibility
-      const email = values.username.includes('@') 
-        ? values.username 
-        : `${values.username}@bmax.dev`;
-      
-      try {
-        // Attempt sign in
-        await signInWithEmailAndPassword(auth, email, values.password);
-      } catch (signInErr: any) {
-        // Modern Firebase Auth often returns 'auth/invalid-credential' for both wrong pass and user-not-found
-        const isAuthError = [
-          'auth/invalid-credential',
-          'auth/user-not-found',
-          'auth/wrong-password'
-        ].includes(signInErr.code);
+      // 1. Attempt standard sign-in via Supabase
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
+        email,
+        password: values.password,
+      });
 
-        // If sign in fails and it's the intended admin, attempt to create the account (auto-provisioning)
-        if (isTargetAdmin && isAuthError) {
-          try {
-            await createUserWithEmailAndPassword(auth, email, values.password);
-          } catch (createErr: any) {
-            // If creation fails (e.g. email already exists but pass was wrong), throw the original error
-            throw signInErr;
+      // 2. Intercept failures if it's our hardcoded admin profile
+      if (signInErr) {
+        if (isTargetAdmin) {
+          // Attempt to clean-register the profile straight from the gateway
+          const { data: signUpData, error: createErr } = await supabase.auth.signUp({
+            email,
+            password: values.password,
+          });
+
+          if (createErr) throw createErr;
+
+          // Catch if Supabase successfully registered it but email verification is still active
+          if (signUpData?.user && !signUpData.session) {
+            setError("Profile provisioned! However, it's locked until you disable 'Confirm Email' in your Supabase Auth Providers settings.");
+            return;
           }
         } else {
+          // Throw the raw sign-in error message to the catch block for visibility
           throw signInErr;
         }
       }
       
       router.push('/projects');
+      router.refresh();
     } catch (err: any) {
-      // We don't log to console.error here as it's handled by the UI error state
-      setError("Authentication failed. Please verify your credentials.");
+      console.error("Full Authentication Stack Trace:", err);
+      // [FIXED] Expose the exact message returned from the backend client
+      setError(err?.message || "Authentication failed. Please verify your system configuration.");
     }
   }
 
   async function handleLogout() {
-    await signOut(auth);
+    await supabase.auth.signOut();
     router.refresh();
   }
 
@@ -174,10 +177,10 @@ export default function AdminPage() {
                     <motion.div 
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="flex items-center gap-2 text-destructive text-xs font-bold p-3 bg-destructive/5 rounded-lg border border-destructive/10"
+                      className="flex items-start gap-2 text-destructive text-xs font-bold p-3 bg-destructive/5 rounded-lg border border-destructive/10 leading-normal"
                     >
-                      <AlertCircle className="w-4 h-4 shrink-0" />
-                      {error}
+                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                      <div className="flex-1">{error}</div>
                     </motion.div>
                   )}
 

@@ -15,13 +15,13 @@ export function About() {
           <h2 className="text-3xl font-headline font-bold mb-6">The Human Behind the Code</h2>
           <div className="space-y-4 text-muted-foreground leading-relaxed">
             <p>
-              My journey started with a curiosity for how things work, from disassembling mechanical watches to building my first static website in 2015. Today, I'm a developer who believes that perfection is achieved not when there is nothing more to add, but when there is nothing left to take away.
+              My journey started with a curiosity for how things work, from disassembling mechanical structures to building intuitive user software. Today, I'm a developer who believes that perfection is achieved not when there is nothing more to add, but when there is nothing left to take away.
             </p>
             <p>
-              I specialize in bridging the gap between complex backend architectures and intuitive, pixel-perfect frontends. Clean code isn't just a preference—it's my philosophy for building sustainable systems.
+              I specialize in bridging the gap between automated application architectures and interactive, pixel-perfect interfaces. Clean execution isn't just a preference—it's my philosophy for building sustainable systems.
             </p>
             <p>
-              When I'm not in front of a terminal, you'll likely find me soldering custom split mechanical keyboards or exploring mountain trails.
+              When I'm not in front of a terminal debugging systems, you'll likely find me building customized toolsets or engineering minimalist solutions.
             </p>
           </div>
         </motion.div>
@@ -37,7 +37,7 @@ export function About() {
           <div className="absolute bottom-8 left-8 right-8">
             <div className="p-4 rounded-lg bg-background/80 backdrop-blur-md border border-border">
               <p className="text-xs font-bold uppercase tracking-widest text-primary mb-1">Current Focus</p>
-              <p className="text-sm font-medium">Distributed AI Workflows</p>
+              <p className="text-sm font-medium">Interactive App Implementations</p>
             </div>
           </div>
         </motion.div>

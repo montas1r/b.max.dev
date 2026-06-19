@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -18,7 +19,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,10 +30,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2, Image as ImageIcon, Globe, Save } from 'lucide-react';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { useUser } from '@/supabase/provider';
 import { PortfolioItem } from '@/types/portfolio';
 
 const formSchema = z.object({
@@ -42,7 +39,7 @@ const formSchema = z.object({
   fullDescription: z.string().min(10, "Detailed description is required"),
   problem: z.string().optional(),
   solution: z.string().optional(),
-  category: z.enum(['Continuous Works', 'Build Projects', 'Skills Learning', 'Hobbies']),
+  category: z.z.enum(['Continuous Works', 'Build Projects', 'Skills Learning', 'Hobbies']),
   imageUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
   liveUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
   tags: z.string().describe("Comma separated tags"),
@@ -52,10 +49,13 @@ interface EditProjectDialogProps {
   project: PortfolioItem | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void; // 👈 1. Add this optional prop
 }
 
-export function EditProjectDialog({ project, isOpen, onOpenChange }: EditProjectDialogProps) {
-  const db = useFirestore();
+export function EditProjectDialog({ project, isOpen, onOpenChange, onSuccess }: EditProjectDialogProps) {
+  const { supabase } = useUser();
+  // router can be removed if not used elsewhere, keeping it clean
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -76,37 +76,44 @@ export function EditProjectDialog({ project, isOpen, onOpenChange }: EditProject
       form.reset({
         title: project.title,
         description: project.description,
-        fullDescription: project.fullDescription,
+        fullDescription: project.fullDescription || (project as any).full_description || "",
         problem: project.problem || "",
         solution: project.solution || "",
         category: project.category,
-        imageUrl: project.imageUrl,
-        liveUrl: project.liveUrl || "",
-        tags: project.tags.join(", "),
+        imageUrl: project.imageUrl || (project as any).image_url || "",
+        liveUrl: project.liveUrl || (project as any).live_url || "",
+        tags: Array.isArray(project.tags) ? project.tags.join(", ") : "",
       });
     }
   }, [project, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!db || !project) return;
+    if (!project) return;
 
-    const projectData = {
-      ...values,
+    const dbPayload = {
+      title: values.title,
+      description: values.description,
+      full_description: values.fullDescription,
+      problem: values.problem || null,
+      solution: values.solution || null,
+      category: values.category,
+      image_url: values.imageUrl || null,
+      live_url: values.liveUrl || null,
       tags: values.tags.split(',').map(t => t.trim()).filter(Boolean),
-      updatedAt: serverTimestamp(),
+      updated_at: new Date().toISOString(),
     };
 
-    updateDoc(doc(db, 'projects', project.id), projectData)
-      .catch(async (error) => {
-        const permissionError = new FirestorePermissionError({
-          path: `projects/${project.id}`,
-          operation: 'update',
-          requestResourceData: projectData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-      });
+    const { error } = await supabase
+      .from('projects')
+      .update(dbPayload)
+      .eq('id', project.id);
 
-    onOpenChange(false);
+    if (error) {
+      console.error(`Database error updating target record payload index ${project.id}:`, error.message);
+    } else {
+      if (onSuccess) onSuccess(); // 👈 2. Call the state refresh function here
+      onOpenChange(false);
+    }
   }
 
   return (

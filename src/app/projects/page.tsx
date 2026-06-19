@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ProjectCard } from '@/components/portfolio/ProjectCard';
 import { ProjectDetail } from '@/components/portfolio/ProjectDetail';
 import { AddProjectDialog } from '@/components/portfolio/AddProjectDialog';
@@ -8,30 +8,56 @@ import { EditProjectDialog } from '@/components/portfolio/EditProjectDialog';
 import { DeleteProjectDialog } from '@/components/portfolio/DeleteProjectDialog';
 import { PortfolioItem } from '@/types/portfolio';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { useUser } from '@/supabase/provider'; 
 import { Loader2, LayoutGrid } from 'lucide-react';
 
 export default function ProjectsPage() {
   const [selectedProject, setSelectedProject] = useState<PortfolioItem | null>(null);
   const [editingProject, setEditingProject] = useState<PortfolioItem | null>(null);
   const [deletingProject, setDeletingProject] = useState<PortfolioItem | null>(null);
+  const [projects, setProjects] = useState<PortfolioItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [year, setYear] = useState<number | null>(null);
-  const db = useFirestore();
-  const { user } = useUser();
 
-  const isAdmin = user && !user.isAnonymous;
+  const { user, supabase } = useUser();
+  const isAdmin = !!user;
 
   useEffect(() => {
     setYear(new Date().getFullYear());
   }, []);
 
-  const projectsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(collection(db, 'projects'), orderBy('createdAt', 'desc'));
-  }, [db]);
+  // [FIXED] Abstracted into a stable, reusable function using useCallback
+  const fetchProjects = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: false }); 
 
-  const { data: projects, loading } = useCollection<PortfolioItem>(projectsQuery);
+      if (error) {
+        console.error("Supabase query details:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw new Error(error.message);
+      }
+      
+      setProjects((data as PortfolioItem[]) || []);
+    } catch (err: any) {
+      console.error("Error fetching projects from Supabase:", err?.message || err);
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  // Initial fetch execution on mount
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   return (
     <main className="container mx-auto px-6 md:px-12 max-w-6xl py-20 relative z-10">
@@ -44,7 +70,8 @@ export default function ProjectsPage() {
             A dynamic collection of my technical builds and professional works.
           </p>
         </div>
-        {isAdmin && <AddProjectDialog />}
+        {/* [FIXED] Pass fetchProjects to handle fresh renders after creating items */}
+        {isAdmin && <AddProjectDialog onSuccess={fetchProjects} />}
       </div>
 
       {loading ? (
@@ -84,7 +111,7 @@ export default function ProjectsPage() {
         >
           <LayoutGrid className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
           <p className="text-muted-foreground italic mb-6">No projects found in the cloud.</p>
-          {isAdmin && <AddProjectDialog />}
+          {isAdmin && <AddProjectDialog onSuccess={fetchProjects} />}
         </motion.div>
       )}
 
@@ -104,16 +131,19 @@ export default function ProjectsPage() {
 
       {isAdmin && (
         <>
+          {/* [FIXED] Wired up onSuccess tracking for both mutation dialogues */}
           <EditProjectDialog 
             project={editingProject}
             isOpen={!!editingProject}
             onOpenChange={(open) => !open && setEditingProject(null)}
+            onSuccess={fetchProjects}
           />
 
           <DeleteProjectDialog 
             project={deletingProject}
             isOpen={!!deletingProject}
             onOpenChange={(open) => !open && setDeletingProject(null)}
+            onSuccess={fetchProjects}
           />
         </>
       )}
@@ -123,7 +153,7 @@ export default function ProjectsPage() {
           <div className="flex flex-col items-center md:items-start gap-2">
             <h2 className="font-headline text-lg font-bold">b.max.dev</h2>
             <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
-              &copy; {year} Built with Firestore & Next.js
+              &copy; {year} Built with Supabase & Next.js
             </p>
           </div>
           <div className="flex gap-8 text-xs font-bold uppercase tracking-widest text-muted-foreground">

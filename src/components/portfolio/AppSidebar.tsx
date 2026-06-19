@@ -36,7 +36,7 @@ export function AppSidebar() {
       <SidebarHeader className="p-6">
         <div className="flex flex-col gap-1">
           <h2 className="font-headline text-2xl font-bold tracking-tighter">
-            <span className="text-foreground">montasir.</span>
+            <span className="text-foreground">b.max.</span>
             <span className="text-primary">dev</span>
           </h2>
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
@@ -70,7 +70,7 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-4">
         <div className="flex justify-center gap-2">
-           <SidebarMenuButton size="icon" className="rounded-full bg-secondary/50 hover:bg-primary/20 hover:text-primary" asChild>
+          <SidebarMenuButton size="icon" className="rounded-full bg-secondary/50 hover:bg-primary/20 hover:text-primary" asChild>
             <a href="https://github.com/montas1r" target="_blank" rel="noopener noreferrer"><Github className="w-4 h-4" /></a>
           </SidebarMenuButton>
           <SidebarMenuButton size="icon" className="rounded-full bg-secondary/50 hover:bg-primary/20 hover:text-primary" asChild>

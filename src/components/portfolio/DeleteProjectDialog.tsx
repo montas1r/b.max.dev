@@ -11,34 +11,34 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { doc, deleteDoc } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { useUser } from '@/supabase/provider';
 import { PortfolioItem } from '@/types/portfolio';
 
 interface DeleteProjectDialogProps {
   project: PortfolioItem | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void; // 👈 1. Add the onSuccess interface configuration
 }
 
-export function DeleteProjectDialog({ project, isOpen, onOpenChange }: DeleteProjectDialogProps) {
-  const db = useFirestore();
+export function DeleteProjectDialog({ project, isOpen, onOpenChange, onSuccess }: DeleteProjectDialogProps) {
+  const { supabase } = useUser();
 
   const handleDelete = async () => {
-    if (!db || !project) return;
+    if (!project) return;
 
-    deleteDoc(doc(db, 'projects', project.id))
-      .catch(async (error) => {
-        const permissionError = new FirestorePermissionError({
-          path: `projects/${project.id}`,
-          operation: 'delete',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-      });
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', project.id);
 
-    onOpenChange(false);
+    if (error) {
+      console.error(`Database error executing removal for entity sequence ${project.id}:`, error.message);
+    } else {
+      // [FIXED] Trigger the reactive data refetch on the parent page before dismissing the dialog
+      if (onSuccess) onSuccess(); 
+      onOpenChange(false);
+    }
   };
 
   return (

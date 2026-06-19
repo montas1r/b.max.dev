@@ -1,7 +1,8 @@
-import type {Metadata} from 'next';
+// src\app\layout.tsx 
+import type { Metadata } from 'next';
 import './globals.css';
 import { Navbar } from '@/components/portfolio/Navbar';
-import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { SupabaseProvider } from '@/supabase/provider'; // [FIXED FILE PATH AND NAME]
 
 export const metadata: Metadata = {
   title: 'b.max.dev Portfolio',
@@ -24,13 +25,14 @@ export default function RootLayout({
         className="font-body antialiased selection:bg-primary selection:text-primary-foreground relative" 
         suppressHydrationWarning
       >
-        <FirebaseClientProvider>
+        {/* [WRAPPED WITH CORRECT PROVIDER] */}
+        <SupabaseProvider>
           <div className="fixed top-[-10%] left-[-10%] w-[50vw] h-[50vw] electric-blur opacity-10 pointer-events-none z-0" />
           <div className="fixed bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] electric-blur opacity-5 pointer-events-none z-0" />
           
           <Navbar />
           {children}
-        </FirebaseClientProvider>
+        </SupabaseProvider>
       </body>
     </html>
   );

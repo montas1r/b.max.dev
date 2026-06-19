@@ -17,6 +17,15 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ item, onClick, onEdit, onDelete }: ProjectCardProps) {
+  // [FIXED] Safely extract image URL from either snake_case (DB) or camelCase (Frontend)
+  // Provides a reliable visual fallback if both strings are empty or undefined
+  const dbImageUrl = (item as any).image_url;
+  const rawSrc = item.imageUrl || dbImageUrl;
+  const validImageSrc = rawSrc && rawSrc.trim() !== "" ? rawSrc : `https://picsum.photos/seed/${item.title || 'project'}/800/600`;
+
+  // Safely grab live URL regardless of case casing standard
+  const validLiveUrl = item.liveUrl || (item as any).live_url;
+
   return (
     <motion.div
       layout
@@ -29,17 +38,19 @@ export function ProjectCard({ item, onClick, onEdit, onDelete }: ProjectCardProp
       >
         <div className="relative aspect-video overflow-hidden">
           <Image
-            src={item.imageUrl}
-            alt={item.title}
+            src={validImageSrc}
+            alt={item.title || "Project Image"}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={false}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
              <div className="flex gap-4 w-full">
                <div className="flex gap-3">
-                 {item.liveUrl && (
+                 {validLiveUrl && (
                    <a 
-                     href={item.liveUrl}
+                     href={validLiveUrl}
                      target="_blank"
                      rel="noopener noreferrer"
                      onClick={(e) => e.stopPropagation()}
@@ -95,7 +106,7 @@ export function ProjectCard({ item, onClick, onEdit, onDelete }: ProjectCardProp
         </div>
         <CardContent className="p-6 flex-1 flex flex-col">
           <div className="mb-4 flex flex-wrap gap-2">
-            {item.tags.slice(0, 3).map(tag => (
+            {item.tags && item.tags.slice(0, 3).map(tag => (
               <Badge key={tag} variant="secondary" className="bg-secondary/50 text-[10px] uppercase tracking-wider">
                 {tag}
               </Badge>

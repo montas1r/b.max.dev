@@ -1,7 +1,6 @@
 "use client";
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Mail, Github, Linkedin, Twitter, FileDown } from 'lucide-react';
 
